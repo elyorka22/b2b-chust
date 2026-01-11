@@ -19,7 +19,7 @@ export default function AdminPage() {
     
     if (!currentUser) {
       // Если токена нет, перенаправляем на страницу входа
-      router.push('/admin/login');
+      router.push('/login');
       return;
     }
 
