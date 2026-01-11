@@ -335,12 +335,23 @@ app.post('/api/auth/login', async (req, res) => {
       storeName: user.store_name,
     });
 
-    res.cookie('auth-token', token, {
+    // Настройки для cookies
+    const cookieOptions = {
       httpOnly: false, // Разрешаем доступ через JavaScript для проверки токена на клиенте
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-    });
+      sameSite: 'lax' as const,
+      maxAge: 60 * 60 * 24 * 7, // 7 дней
+      path: '/', // Доступно для всех путей
+    };
+
+    // В production не устанавливаем domain, чтобы cookies работали для всех поддоменов Railway
+    // В development можно указать localhost
+    if (process.env.NODE_ENV !== 'production') {
+      // @ts-ignore
+      cookieOptions.domain = undefined;
+    }
+
+    res.cookie('auth-token', token, cookieOptions);
 
     res.json({
       user: {
