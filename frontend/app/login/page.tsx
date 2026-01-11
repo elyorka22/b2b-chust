@@ -132,7 +132,7 @@ export default function LoginPage() {
       <Header />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-2xl font-bold mb-6 text-center">Kirish</h1>
+          <h1 className="text-2xl font-bold mb-6 text-center text-gray-900">Kirish</h1>
           
           <div className="mb-6 flex gap-4 border-b">
             <button
@@ -204,7 +204,7 @@ export default function LoginPage() {
             ) : (
               <>
                 <div>
-                  <label htmlFor="username" className="block text-sm font-medium mb-1">
+                  <label htmlFor="username" className="block text-sm font-medium mb-1 text-gray-900">
                     Foydalanuvchi nomi *
                   </label>
                   <input
@@ -215,11 +215,11 @@ export default function LoginPage() {
                     onChange={(e) => setUsername(e.target.value)}
                     required
                     autoComplete="username"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium mb-1">
+                  <label htmlFor="password" className="block text-sm font-medium mb-1 text-gray-900">
                     Parol *
                   </label>
                   <input
@@ -230,7 +230,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     autoComplete="current-password"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
               </>

@@ -123,12 +123,12 @@ export default function SuperAdminDashboard() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Super-admin panel</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-900">Super-admin panel</h1>
 
       <div className="mb-6 flex gap-2 border-b">
         <button
           onClick={() => setActiveTab('products')}
-          className={`px-4 py-2 transition-colors ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
+          className={`px-4 py-2 transition-colors ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-700 hover:text-indigo-600'}`}
         >
           Mahsulotlar
         </button>
@@ -167,7 +167,7 @@ export default function SuperAdminDashboard() {
       {activeTab === 'products' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold">Mahsulotlarni boshqarish</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">Mahsulotlarni boshqarish</h2>
             <button
               onClick={() => {
                 setEditingProduct(null);
@@ -239,7 +239,7 @@ export default function SuperAdminDashboard() {
                 <div key={order.id} className="bg-white rounded-lg shadow-md p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="text-lg font-semibold">Buyurtma #{order.id}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">Buyurtma #{order.id}</h3>
                       <p className="text-sm text-gray-600">
                         {new Date(order.createdAt).toLocaleString('uz-UZ')}
                       </p>
@@ -294,7 +294,7 @@ export default function SuperAdminDashboard() {
       {activeTab === 'users' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold">Foydalanuvchilar</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">Foydalanuvchilar</h2>
             <button
               onClick={() => setShowUserForm(true)}
               className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
@@ -320,7 +320,7 @@ export default function SuperAdminDashboard() {
                 <div key={user.id} className="bg-white rounded-lg shadow-md p-6">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-lg font-semibold">{user.username}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">{user.username}</h3>
                       <p className="text-sm text-gray-600">
                         Rol: {user.role === 'super-admin' ? 'Super-admin' : 'Magazin'}
                       </p>
@@ -399,7 +399,7 @@ export default function SuperAdminDashboard() {
       {activeTab === 'telegram' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold">Telegram Bot boshqaruvi</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">Telegram Bot boshqaruvi</h2>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowWelcomeMessageForm(true)}
@@ -497,7 +497,7 @@ export default function SuperAdminDashboard() {
       {activeTab === 'settings' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold">Sozlamalar</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">Sozlamalar</h2>
           </div>
           
           <div className="space-y-6">
@@ -580,7 +580,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Nomi *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Nomi *</label>
             <input
               type="text"
               value={formData.name}
@@ -590,7 +590,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Tavsifi *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Tavsifi *</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -601,7 +601,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Narxi *</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Narxi *</label>
               <input
                 type="number"
                 step="0.01"
@@ -612,7 +612,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">O'lchov birligi *</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">O'lchov birligi *</label>
               <select
                 value={formData.unit}
                 onChange={(e) => setFormData({ ...formData, unit: e.target.value as 'dona' | 'upakovka' | 'karobka' })}
@@ -626,7 +626,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Miqdori *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Miqdori *</label>
             <input
               type="number"
               value={formData.stock}
@@ -636,7 +636,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Rasm (URL)</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Rasm (URL)</label>
             <input
               type="url"
               value={formData.image}
@@ -645,7 +645,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Kategoriya</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Kategoriya</label>
             <input
               type="text"
               value={formData.category}
@@ -703,7 +703,7 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
         <h3 className="text-xl font-bold mb-4">Foydalanuvchi yaratish</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Foydalanuvchi nomi *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Foydalanuvchi nomi *</label>
             <input
               type="text"
               value={formData.username}
@@ -713,7 +713,7 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Parol *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Parol *</label>
             <input
               type="password"
               value={formData.password}
@@ -723,7 +723,7 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Rol *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Rol *</label>
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value as 'magazin' | 'super-admin' })}
@@ -735,7 +735,7 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
           </div>
           {formData.role === 'magazin' && (
             <div>
-              <label className="block text-sm font-medium mb-1">Magazin nomi *</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Magazin nomi *</label>
               <input
                 type="text"
                 value={formData.storeName}
@@ -806,7 +806,7 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium mb-1">Chat ID *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Chat ID *</label>
             <input
               type="number"
               value={chatId}
@@ -820,7 +820,7 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
             </p>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Xabar matni *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Xabar matni *</label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -831,7 +831,7 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Web App URL (ixtiyoriy)</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Web App URL (ixtiyoriy)</label>
             <input
               type="url"
               value={webAppUrl}
@@ -919,7 +919,7 @@ function ChangePasswordForm({ userId, onClose, onSuccess }: { userId: string; on
           )}
           {!isSuperAdmin && (
             <div>
-              <label className="block text-sm font-medium mb-1">Joriy parol *</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Joriy parol *</label>
               <input
                 type="password"
                 value={currentPassword}
@@ -930,7 +930,7 @@ function ChangePasswordForm({ userId, onClose, onSuccess }: { userId: string; on
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium mb-1">Yangi parol *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Yangi parol *</label>
             <input
               type="password"
               value={newPassword}
@@ -942,7 +942,7 @@ function ChangePasswordForm({ userId, onClose, onSuccess }: { userId: string; on
             <p className="text-xs text-gray-500 mt-1">Kamida 6 belgi</p>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Yangi parolni tasdiqlash *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Yangi parolni tasdiqlash *</label>
             <input
               type="password"
               value={confirmPassword}
@@ -1090,7 +1090,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium mb-1">Sarlavha *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Sarlavha *</label>
             <input
               type="text"
               value={formData.title}
@@ -1100,7 +1100,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Tavsif *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Tavsif *</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -1111,7 +1111,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Telefon *</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Telefon *</label>
               <input
                 type="text"
                 value={formData.phone}
@@ -1121,7 +1121,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Email *</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Email *</label>
               <input
                 type="email"
                 value={formData.email}
@@ -1133,7 +1133,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Telegram</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Telegram</label>
               <input
                 type="text"
                 value={formData.telegram}
@@ -1142,7 +1142,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Manzil</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Manzil</label>
               <input
                 type="text"
                 value={formData.address}
@@ -1152,7 +1152,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Qanday ishlaydi?</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Qanday ishlaydi?</label>
             <div className="space-y-2">
               {formData.howItWorks.map((item, index) => (
                 <div key={index} className="flex gap-2">
