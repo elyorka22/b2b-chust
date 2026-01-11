@@ -175,29 +175,35 @@ export default function LoginPage() {
             {role === 'buyer' ? (
               <>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label htmlFor="phone" className="block text-sm font-medium mb-1 text-gray-900">
                     Telefon raqami *
                   </label>
                   <input
+                    id="phone"
+                    name="phone"
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     required
+                    autoComplete="tel"
                     placeholder="+998 (90) 123-45-67"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label htmlFor="name" className="block text-sm font-medium mb-1 text-gray-900">
                     Ism *
                   </label>
                   <input
+                    id="name"
+                    name="name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    autoComplete="name"
                     placeholder="Ismingizni kiriting"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
               </>
