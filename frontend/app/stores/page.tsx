@@ -8,6 +8,7 @@ import { User, Product } from '@/lib/db';
 
 interface StoreWithStats extends User {
   productCount: number;
+  createdAt?: string;
 }
 
 export default function StoresPage() {

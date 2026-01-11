@@ -35,6 +35,7 @@ export interface User {
   username: string;
   role: 'super-admin' | 'magazin';
   storeName?: string;
+  createdAt?: string;
 }
 
 export interface Customer {
