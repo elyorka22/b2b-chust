@@ -586,7 +586,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div>
@@ -596,7 +596,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -608,7 +608,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
             </div>
             <div>
@@ -617,7 +617,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
                 value={formData.unit}
                 onChange={(e) => setFormData({ ...formData, unit: e.target.value as 'dona' | 'upakovka' | 'karobka' })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               >
                 <option value="dona">Dona</option>
                 <option value="upakovka">Upakovka</option>
@@ -632,7 +632,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
               value={formData.stock}
               onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div>
@@ -641,7 +641,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
               type="url"
               value={formData.image}
               onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div>
@@ -650,7 +650,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
               type="text"
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div className="flex gap-2">
@@ -709,7 +709,7 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded"
+              className="w-full px-4 py-2 border border-gray-300 rounded text-gray-900 bg-white"
             />
           </div>
           <div>
@@ -719,7 +719,7 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded"
+              className="w-full px-4 py-2 border border-gray-300 rounded text-gray-900 bg-white"
             />
           </div>
           <div>
@@ -727,7 +727,7 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value as 'magazin' | 'super-admin' })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             >
               <option value="magazin">Magazin</option>
               <option value="super-admin">Super-admin</option>
@@ -742,7 +742,7 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
                 onChange={(e) => setFormData({ ...formData, storeName: e.target.value })}
                 required={formData.role === 'magazin'}
                 placeholder="Magazin nomi"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
             </div>
           )}
@@ -813,7 +813,7 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
               onChange={(e) => setChatId(e.target.value)}
               required
               placeholder="123456789"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
             <p className="text-xs text-gray-500 mt-1">
               Foydalanuvchi yoki guruh ID raqami
@@ -827,7 +827,7 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
               required
               rows={4}
               placeholder="Xabar matnini kiriting..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div>
@@ -837,7 +837,7 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
               value={webAppUrl}
               onChange={(e) => setWebAppUrl(e.target.value)}
               placeholder="https://your-app.railway.app"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
             <p className="text-xs text-gray-500 mt-1">
               Agar ko'rsatilsa, xabar bilan Web App tugmasi yuboriladi
@@ -925,7 +925,7 @@ function ChangePasswordForm({ userId, onClose, onSuccess }: { userId: string; on
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required={!isSuperAdmin}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
             </div>
           )}
@@ -937,7 +937,7 @@ function ChangePasswordForm({ userId, onClose, onSuccess }: { userId: string; on
               onChange={(e) => setNewPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
             <p className="text-xs text-gray-500 mt-1">Kamida 6 belgi</p>
           </div>
@@ -949,7 +949,7 @@ function ChangePasswordForm({ userId, onClose, onSuccess }: { userId: string; on
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           {isSuperAdmin && (
@@ -1096,7 +1096,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div>
@@ -1106,7 +1106,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -1117,7 +1117,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
             </div>
             <div>
@@ -1127,7 +1127,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
             </div>
           </div>
@@ -1138,7 +1138,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
                 type="text"
                 value={formData.telegram}
                 onChange={(e) => setFormData({ ...formData, telegram: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
             </div>
             <div>
@@ -1147,7 +1147,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
                 type="text"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
             </div>
           </div>
