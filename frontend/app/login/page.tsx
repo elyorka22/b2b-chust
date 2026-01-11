@@ -68,9 +68,27 @@ export default function LoginPage() {
         const data = await response.json();
 
         if (response.ok) {
+          // Сохраняем токен в localStorage как резервный вариант
+          if (data.user) {
+            // Создаем простой токен для хранения в localStorage (только для проверки на клиенте)
+            try {
+              const tokenParts = document.cookie.split('; ').find(row => row.startsWith('auth-token='));
+              if (tokenParts) {
+                const token = tokenParts.split('=')[1];
+                if (token) {
+                  localStorage.setItem('auth-token-backup', token);
+                }
+              }
+            } catch (e) {
+              console.error('Error saving token to localStorage:', e);
+            }
+          }
+          
+          // Небольшая задержка, чтобы cookies успели сохраниться
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           // После успешного логина продавца/супер-админа переходим в админ-панель
-          router.push('/admin');
-          router.refresh();
+          window.location.href = '/admin'; // Используем window.location для полного перезагрузки страницы
         } else {
           // Если пользователь не найден, переходим на страницу связи
           if (response.status === 401) {

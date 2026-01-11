@@ -17,9 +17,34 @@ export interface CustomerAuth {
 // Получить токен из cookies (только на клиенте)
 export function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
+  
+  // Сначала пытаемся получить из cookies
   const cookies = document.cookie.split('; ');
   const tokenCookie = cookies.find(row => row.startsWith('auth-token='));
-  return tokenCookie ? tokenCookie.split('=')[1] : null;
+  if (tokenCookie) {
+    const token = tokenCookie.split('=')[1];
+    if (token) {
+      // Сохраняем в localStorage как резерв
+      try {
+        localStorage.setItem('auth-token-backup', token);
+      } catch (e) {
+        // Игнорируем ошибки localStorage
+      }
+      return token;
+    }
+  }
+  
+  // Если в cookies нет, пытаемся получить из localStorage (резервный вариант)
+  try {
+    const backupToken = localStorage.getItem('auth-token-backup');
+    if (backupToken) {
+      return backupToken;
+    }
+  } catch (e) {
+    // Игнорируем ошибки localStorage
+  }
+  
+  return null;
 }
 
 // Получить токен покупателя из cookies (только на клиенте)

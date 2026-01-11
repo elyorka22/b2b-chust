@@ -14,19 +14,27 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Проверяем токен на клиенте
-    const currentUser = getCurrentUserFromToken();
-    
-    if (!currentUser) {
-      // Если токена нет, перенаправляем на страницу входа
-      router.push('/login');
-      return;
-    }
+    // Небольшая задержка, чтобы дать время cookies сохраниться
+    const checkAuth = async () => {
+      // Даем время для установки cookies после редиректа
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Проверяем токен на клиенте
+      const currentUser = getCurrentUserFromToken();
+      
+      if (!currentUser) {
+        // Если токена нет, перенаправляем на страницу входа
+        router.push('/login');
+        return;
+      }
 
-    // Можно также проверить токен через API для дополнительной безопасности
-    // Но для простоты используем проверку на клиенте
-    setUser(currentUser);
-    setLoading(false);
+      // Можно также проверить токен через API для дополнительной безопасности
+      // Но для простоты используем проверку на клиенте
+      setUser(currentUser);
+      setLoading(false);
+    };
+    
+    checkAuth();
   }, [router]);
 
   if (loading) {
