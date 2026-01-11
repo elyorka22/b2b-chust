@@ -171,7 +171,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
       {activeTab === 'products' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold">Mahsulotlarni boshqarish</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">Mahsulotlarni boshqarish</h2>
             <button
               onClick={() => {
                 setEditingProduct(null);
@@ -245,7 +245,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
                 <div key={order.id} className="bg-white rounded-lg shadow-md p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="text-lg font-semibold">Buyurtma #{order.id}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">Buyurtma #{order.id}</h3>
                       <p className="text-sm text-gray-600">
                         {new Date(order.createdAt).toLocaleString('uz-UZ')}
                       </p>
@@ -365,44 +365,44 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Nomi *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Nomi *</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Tavsifi *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Tavsifi *</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Narxi *</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Narxi *</label>
               <input
                 type="number"
                 step="0.01"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">O'lchov birligi *</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">O'lchov birligi *</label>
               <select
                 value={formData.unit}
                 onChange={(e) => setFormData({ ...formData, unit: e.target.value as 'dona' | 'upakovka' | 'karobka' })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               >
                 <option value="dona">Dona</option>
                 <option value="upakovka">Upakovka</option>
@@ -411,31 +411,31 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Miqdori *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Miqdori *</label>
             <input
               type="number"
               value={formData.stock}
               onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Rasm (URL)</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Rasm (URL)</label>
             <input
               type="url"
               value={formData.image}
               onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Kategoriya</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Kategoriya</label>
             <input
               type="text"
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div className="flex gap-2">
@@ -496,13 +496,13 @@ function TelegramChatIdForm({ userId, currentChatId, onClose, onSuccess }: { use
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium mb-1">Telegram Chat ID *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Telegram Chat ID *</label>
             <input
               type="number"
               value={chatId}
               onChange={(e) => setChatId(e.target.value)}
               placeholder="123456789"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
             <p className="text-xs text-gray-500 mt-1">
               💡 Chat ID ni olish uchun @userinfobot ga /start yuboring
