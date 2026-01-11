@@ -67,25 +67,43 @@ export default function LoginPage() {
 
         const data = await response.json();
 
-        if (response.ok) {
+        if (response.ok && data.user) {
+          console.log('Login successful, user:', data.user);
+          
+          // Пытаемся получить токен из cookies
+          const cookies = document.cookie.split('; ');
+          const tokenCookie = cookies.find(row => row.startsWith('auth-token='));
+          let token = tokenCookie ? tokenCookie.split('=')[1] : null;
+          
+          // Если токен не в cookies, берем из ответа (резервный вариант)
+          if (!token && data.token) {
+            token = data.token;
+            console.log('Token from response body');
+          }
+          
+          console.log('Token from cookies:', tokenCookie ? 'Found' : 'Not found');
+          console.log('Token from response:', data.token ? 'Found' : 'Not found');
+          console.log('All cookies:', document.cookie);
+          
           // Сохраняем токен в localStorage как резервный вариант
-          if (data.user) {
-            // Создаем простой токен для хранения в localStorage (только для проверки на клиенте)
+          if (token) {
             try {
-              const tokenParts = document.cookie.split('; ').find(row => row.startsWith('auth-token='));
-              if (tokenParts) {
-                const token = tokenParts.split('=')[1];
-                if (token) {
-                  localStorage.setItem('auth-token-backup', token);
-                }
-              }
+              localStorage.setItem('auth-token-backup', token);
+              console.log('Token saved to localStorage');
             } catch (e) {
               console.error('Error saving token to localStorage:', e);
             }
+          } else {
+            console.warn('Token not found in cookies or response');
           }
           
           // Небольшая задержка, чтобы cookies успели сохраниться
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // Проверяем еще раз перед редиректом
+          const cookiesAfterDelay = document.cookie.split('; ');
+          const tokenAfterDelay = cookiesAfterDelay.find(row => row.startsWith('auth-token='));
+          console.log('Token after delay:', tokenAfterDelay ? 'Found' : 'Not found');
           
           // После успешного логина продавца/супер-админа переходим в админ-панель
           window.location.href = '/admin'; // Используем window.location для полного перезагрузки страницы
@@ -186,26 +204,32 @@ export default function LoginPage() {
             ) : (
               <>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label htmlFor="username" className="block text-sm font-medium mb-1">
                     Foydalanuvchi nomi *
                   </label>
                   <input
+                    id="username"
+                    name="username"
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
+                    autoComplete="username"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label htmlFor="password" className="block text-sm font-medium mb-1">
                     Parol *
                   </label>
                   <input
+                    id="password"
+                    name="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    autoComplete="current-password"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>

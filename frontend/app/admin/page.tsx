@@ -17,17 +17,23 @@ export default function AdminPage() {
     // Небольшая задержка, чтобы дать время cookies сохраниться
     const checkAuth = async () => {
       // Даем время для установки cookies после редиректа
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Проверяем токен на клиенте
+      console.log('Checking auth token...');
+      console.log('All cookies:', document.cookie);
+      
       const currentUser = getCurrentUserFromToken();
+      console.log('Current user from token:', currentUser);
       
       if (!currentUser) {
+        console.log('No user found, redirecting to login');
         // Если токена нет, перенаправляем на страницу входа
         router.push('/login');
         return;
       }
 
+      console.log('User authenticated:', currentUser);
       // Можно также проверить токен через API для дополнительной безопасности
       // Но для простоты используем проверку на клиенте
       setUser(currentUser);

@@ -345,7 +345,8 @@ app.post('/api/auth/login', async (req, res) => {
     };
 
     res.cookie('auth-token', token, cookieOptions);
-
+    
+    // Также отправляем токен в теле ответа для резервного сохранения на клиенте
     res.json({
       user: {
         id: user.id,
@@ -353,6 +354,7 @@ app.post('/api/auth/login', async (req, res) => {
         role: user.role,
         storeName: user.store_name,
       },
+      token: token, // Отправляем токен в ответе для резервного сохранения
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
