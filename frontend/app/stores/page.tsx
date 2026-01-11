@@ -1,20 +1,58 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
-import { db } from '@/lib/db';
 import Link from 'next/link';
+import { usersApi, productsApi } from '@/lib/api';
+import { User, Product } from '@/lib/db';
 
-export default async function StoresPage() {
-  // Получаем всех пользователей с ролью magazin
-  const allUsers = db.users.getAll();
-  const stores = allUsers.filter(user => user.role === 'magazin');
+interface StoreWithStats extends User {
+  productCount: number;
+}
 
-  // Для каждого магазина получаем количество товаров
-  const storesWithStats = stores.map(store => {
-    const products = db.products.getAll().filter(p => p.storeId === store.id);
-    return {
-      ...store,
-      productCount: products.length,
-    };
-  });
+export default function StoresPage() {
+  const [stores, setStores] = useState<StoreWithStats[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStores() {
+      try {
+        const [users, products] = await Promise.all([
+          usersApi.getAll(),
+          productsApi.getAll(),
+        ]);
+
+        const magazinUsers = users.filter((u: User) => u.role === 'magazin');
+        
+        const storesWithStats = magazinUsers.map((store: User) => {
+          const storeProducts = products.filter((p: Product) => p.storeId === store.id);
+          return {
+            ...store,
+            productCount: storeProducts.length,
+          };
+        });
+
+        setStores(storesWithStats);
+      } catch (error) {
+        console.error('Do\'konlarni yuklashda xatolik:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchStores();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">Yuklanmoqda...</div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -30,13 +68,13 @@ export default async function StoresPage() {
           </Link>
         </div>
 
-        {storesWithStats.length === 0 ? (
+        {stores.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">Do'konlar hali qo'shilmagan</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {storesWithStats.map((store) => (
+            {stores.map((store) => (
               <Link
                 key={store.id}
                 href={`/stores/${store.id}`}
@@ -54,7 +92,7 @@ export default async function StoresPage() {
                       Mahsulotlar: {store.productCount}
                     </span>
                     <span className="text-sm text-gray-400">
-                      {new Date(store.createdAt).toLocaleDateString('uz-UZ')}
+                      {store.createdAt ? new Date(store.createdAt).toLocaleDateString('uz-UZ') : ''}
                     </span>
                   </div>
                 </div>
@@ -66,4 +104,3 @@ export default async function StoresPage() {
     </div>
   );
 }
-

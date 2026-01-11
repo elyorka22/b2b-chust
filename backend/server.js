@@ -314,6 +314,59 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ========== USERS API ==========
+app.get('/api/users', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('b2b_users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json((data || []).map(u => ({
+      id: u.id,
+      username: u.username,
+      role: u.role,
+      storeName: u.store_name,
+      createdAt: u.created_at,
+    })));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { id } = req.params;
+    const { data, error } = await supabaseAdmin
+      .from('b2b_users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error || !data) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      id: data.id,
+      username: data.username,
+      role: data.role,
+      storeName: data.store_name,
+      createdAt: data.created_at,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post('/api/users', requireAuth, async (req, res) => {
   try {
     if (req.user.role !== 'super-admin') {

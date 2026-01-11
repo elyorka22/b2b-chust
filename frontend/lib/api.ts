@@ -31,6 +31,8 @@ export const authApi = {
 
 // Users API
 export const usersApi = {
+  getAll: () => api.get('/api/users').then(res => res.data),
+  getById: (id: string) => api.get(`/api/users/${id}`).then(res => res.data),
   create: (user: any) => api.post('/api/users', user).then(res => res.data),
 };
 
