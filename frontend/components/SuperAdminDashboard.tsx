@@ -198,8 +198,8 @@ export default function SuperAdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {products.map((product) => (
                 <div key={product.id} className="bg-white rounded-lg shadow-md p-4">
-                  <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-                  <p className="text-gray-600 text-sm mb-2">{product.description}</p>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-900">{product.name}</h3>
+                  <p className="text-gray-700 text-sm mb-2">{product.description}</p>
                   <p className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
                     {product.price.toLocaleString()} so'm/{product.unit || 'dona'}
                   </p>
@@ -370,7 +370,7 @@ export default function SuperAdminDashboard() {
           ) : stats ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Jami buyurtmalar</h3>
+                <h3 className="text-gray-700 mb-2">Jami buyurtmalar</h3>
                 <p className="text-3xl font-bold">{stats.orders.total}</p>
               </div>
               <div className="bg-white rounded-lg shadow-md p-6">
@@ -425,7 +425,7 @@ export default function SuperAdminDashboard() {
                   <h3 className="text-xl font-semibold mb-4">Bot ma'lumotlari</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-gray-600">Bot nomi:</p>
+                      <p className="text-gray-700">Bot nomi:</p>
                       <p className="text-lg font-medium">{telegramStats.botInfo.first_name}</p>
                     </div>
                     {telegramStats.botInfo.username && (
