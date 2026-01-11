@@ -304,7 +304,7 @@ app.post('/api/auth/login', async (req, res) => {
     });
 
     res.cookie('auth-token', token, {
-      httpOnly: true,
+      httpOnly: false, // Разрешаем доступ через JavaScript для проверки токена на клиенте
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7,
