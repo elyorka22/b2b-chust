@@ -12,9 +12,41 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // CORS настройка для работы с Frontend
+const getFrontendUrl = () => {
+  const url = process.env.FRONTEND_URL || 'http://localhost:3000';
+  // Если URL не начинается с http:// или https://, добавляем https://
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
+  }
+  return url;
+};
+
+const allowedOrigins = [
+  getFrontendUrl(),
+  'http://localhost:3000',
+  'http://localhost:3001',
+  // Добавляем также вариант без протокола на случай, если он указан в переменной
+  process.env.FRONTEND_URL ? `https://${process.env.FRONTEND_URL.replace(/^https?:\/\//, '')}` : null,
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Разрешаем запросы без origin (например, из Postman или мобильных приложений)
+    if (!origin) return callback(null, true);
+    
+    // Проверяем, есть ли origin в списке разрешенных
+    if (allowedOrigins.some(allowed => origin === allowed || origin.startsWith(allowed))) {
+      callback(null, true);
+    } else {
+      // Для отладки: логируем все origins
+      console.log('CORS blocked origin:', origin);
+      console.log('Allowed origins:', allowedOrigins);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 app.use(cookieParser());
