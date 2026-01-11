@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
+import { API_BASE_URL } from '@/lib/config';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -57,16 +58,18 @@ export default function LoginPage() {
           return;
         }
 
-        const response = await fetch('/api/auth/login', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ username, password }),
         });
 
         const data = await response.json();
 
         if (response.ok) {
-          router.push('/');
+          // После успешного логина продавца/супер-админа переходим в админ-панель
+          router.push('/admin');
           router.refresh();
         } else {
           // Если пользователь не найден, переходим на страницу связи
