@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Product, Order } from '@/lib/db';
 import { productsApi, ordersApi, statsApi, usersApi, telegramApi, botSettingsApi, userApi, contactPageApi } from '@/lib/api';
 import { getCurrentUserFromToken } from '@/lib/auth';
-import Link from 'next/link';
 
 export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'stats' | 'telegram' | 'settings'>('products');
