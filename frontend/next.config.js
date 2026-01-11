@@ -1,9 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  env: {
-    NEXT_PUBLIC_BACKEND_URL: process.env.BACKEND_URL || 'http://localhost:3001',
-  },
+  // Переменные окружения с префиксом NEXT_PUBLIC_ автоматически доступны в браузере
+  // Не нужно дублировать их в env, они уже доступны через process.env
 }
 
 module.exports = nextConfig
