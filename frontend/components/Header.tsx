@@ -72,12 +72,20 @@ export default function Header() {
               </>
             )}
             {!isAdmin && !isCustomer && (
-              <Link 
-                href="/login" 
-                className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all shadow-md hover:shadow-lg"
-              >
-                Kirish
-              </Link>
+              <>
+                <Link 
+                  href="/contact" 
+                  className="text-gray-700 hover:text-black transition-colors"
+                >
+                  Sotuvchi bo'lish
+                </Link>
+                <Link 
+                  href="/login" 
+                  className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all shadow-md hover:shadow-lg"
+                >
+                  Kirish
+                </Link>
+              </>
             )}
             {!isAdmin && isCustomer && (
               <div className="flex items-center gap-4">

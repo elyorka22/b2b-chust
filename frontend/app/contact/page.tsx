@@ -1,20 +1,73 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import Link from 'next/link';
+import { contactPageApi } from '@/lib/api';
 
 export default function ContactPage() {
+  const [contactData, setContactData] = useState({
+    title: 'Sotuvchi sifatida ro\'yxatdan o\'tish',
+    description: 'Sizning foydalanuvchi nomingiz yoki parolingiz tizimda topilmadi. Sotuvchi sifatida ro\'yxatdan o\'tish uchun quyidagi ma\'lumotlar bilan bog\'laning:',
+    phone: '+998 (90) 123-45-67',
+    email: 'info@b2bchust.uz',
+    telegram: '@b2bchust_support',
+    address: 'Chust shahri, O\'zbekiston',
+    howItWorks: [
+      'Biz bilan bog\'laning va sotuvchi sifatida ro\'yxatdan o\'tish so\'rovingizni yuboring',
+      'Biz sizga foydalanuvchi nomi va parol yaratamiz',
+      'Yaratilgan ma\'lumotlar bilan tizimga kirishingiz mumkin',
+      'O\'z mahsulotlaringizni qo\'shish va buyurtmalarni boshqarishni boshlashingiz mumkin',
+    ],
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    contactPageApi.get()
+      .then(data => {
+        if (data) {
+          setContactData({
+            title: data.contact_page_title || contactData.title,
+            description: data.contact_page_description || contactData.description,
+            phone: data.contact_page_phone || contactData.phone,
+            email: data.contact_page_email || contactData.email,
+            telegram: data.contact_page_telegram || contactData.telegram,
+            address: data.contact_page_address || contactData.address,
+            howItWorks: data.contact_page_how_it_works || contactData.howItWorks,
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Ошибка загрузки данных страницы контактов:', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">Yuklanmoqda...</div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8">
           <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">
-            Sotuvchi sifatida ro'yxatdan o'tish
+            {contactData.title}
           </h1>
           
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-gray-700 mb-4">
-              Sizning foydalanuvchi nomingiz yoki parolingiz tizimda topilmadi. 
-              Sotuvchi sifatida ro'yxatdan o'tish uchun quyidagi ma'lumotlar bilan bog'laning:
+              {contactData.description}
             </p>
           </div>
 
@@ -29,7 +82,7 @@ export default function ContactPage() {
                   </div>
                   <div className="ml-4">
                     <p className="font-medium text-gray-900">Telefon</p>
-                    <p className="text-gray-600">+998 (90) 123-45-67</p>
+                    <p className="text-gray-600">{contactData.phone}</p>
                   </div>
                 </div>
 
@@ -39,7 +92,7 @@ export default function ContactPage() {
                   </div>
                   <div className="ml-4">
                     <p className="font-medium text-gray-900">Email</p>
-                    <p className="text-gray-600">info@b2bchust.uz</p>
+                    <p className="text-gray-600">{contactData.email}</p>
                   </div>
                 </div>
 
@@ -49,7 +102,7 @@ export default function ContactPage() {
                   </div>
                   <div className="ml-4">
                     <p className="font-medium text-gray-900">Telegram</p>
-                    <p className="text-gray-600">@b2bchust_support</p>
+                    <p className="text-gray-600">{contactData.telegram}</p>
                   </div>
                 </div>
 
@@ -59,7 +112,7 @@ export default function ContactPage() {
                   </div>
                   <div className="ml-4">
                     <p className="font-medium text-gray-900">Manzil</p>
-                    <p className="text-gray-600">Chust shahri, O'zbekiston</p>
+                    <p className="text-gray-600">{contactData.address}</p>
                   </div>
                 </div>
               </div>
@@ -68,10 +121,9 @@ export default function ContactPage() {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="font-semibold mb-2 text-gray-900">Qanday ishlaydi?</h3>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
-                <li>Biz bilan bog'laning va sotuvchi sifatida ro'yxatdan o'tish so'rovingizni yuboring</li>
-                <li>Biz sizga foydalanuvchi nomi va parol yaratamiz</li>
-                <li>Yaratilgan ma'lumotlar bilan tizimga kirishingiz mumkin</li>
-                <li>O'z mahsulotlaringizni qo'shish va buyurtmalarni boshqarishni boshlashingiz mumkin</li>
+                {contactData.howItWorks.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
               </ul>
             </div>
 

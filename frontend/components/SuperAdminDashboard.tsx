@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Product, Order } from '@/lib/db';
-import { productsApi, ordersApi, statsApi, usersApi, telegramApi } from '@/lib/api';
+import { productsApi, ordersApi, statsApi, usersApi, telegramApi, botSettingsApi, userApi, contactPageApi } from '@/lib/api';
+import { getCurrentUserFromToken } from '@/lib/auth';
+import Link from 'next/link';
 
 export default function SuperAdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'stats' | 'telegram'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'stats' | 'telegram' | 'settings'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -15,6 +18,12 @@ export default function SuperAdminDashboard() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [telegramStats, setTelegramStats] = useState<any>(null);
   const [showSendMessageForm, setShowSendMessageForm] = useState(false);
+  const [showWelcomeMessageForm, setShowWelcomeMessageForm] = useState(false);
+  const [welcomeMessage, setWelcomeMessage] = useState<string>('');
+  const [users, setUsers] = useState<any[]>([]);
+  const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showContactPageForm, setShowContactPageForm] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -25,6 +34,8 @@ export default function SuperAdminDashboard() {
       fetchStats();
     } else if (activeTab === 'telegram') {
       fetchTelegramStats();
+    } else if (activeTab === 'users') {
+      fetchUsers();
     }
   }, [activeTab]);
 
@@ -67,10 +78,26 @@ export default function SuperAdminDashboard() {
   const fetchTelegramStats = async () => {
     setLoading(true);
     try {
-      const data = await telegramApi.getStats();
-      setTelegramStats(data);
+      const [statsData, settingsData] = await Promise.all([
+        telegramApi.getStats(),
+        botSettingsApi.get('welcome_message').catch(() => ({ value: '' })),
+      ]);
+      setTelegramStats(statsData);
+      setWelcomeMessage(settingsData.value || '');
     } catch (error) {
       console.error('Telegram statistikani yuklashda xatolik:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const data = await usersApi.getAll();
+      setUsers(data);
+    } catch (error) {
+      console.error('Foydalanuvchilarni yuklashda xatolik:', error);
     } finally {
       setLoading(false);
     }
@@ -129,6 +156,12 @@ export default function SuperAdminDashboard() {
           className={`px-4 py-2 transition-colors ${activeTab === 'telegram' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
         >
           Telegram Bot
+        </button>
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`px-4 py-2 transition-colors ${activeTab === 'settings' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
+        >
+          Sozlamalar
         </button>
       </div>
 
@@ -275,7 +308,55 @@ export default function SuperAdminDashboard() {
               onClose={() => setShowUserForm(false)}
               onSuccess={() => {
                 setShowUserForm(false);
+                fetchUsers();
                 alert('Foydalanuvchi yaratildi');
+              }}
+            />
+          )}
+          {loading ? (
+            <div className="text-center py-12">Yuklanmoqda...</div>
+          ) : (
+            <div className="space-y-4 mt-4">
+              {users.map((user) => (
+                <div key={user.id} className="bg-white rounded-lg shadow-md p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-lg font-semibold">{user.username}</h3>
+                      <p className="text-sm text-gray-600">
+                        Rol: {user.role === 'super-admin' ? 'Super-admin' : 'Magazin'}
+                      </p>
+                      {user.storeName && (
+                        <p className="text-sm text-gray-600">Magazin: {user.storeName}</p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Yaratilgan: {new Date(user.createdAt).toLocaleString('uz-UZ')}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedUserId(user.id);
+                        setShowChangePasswordForm(true);
+                      }}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all text-sm"
+                    >
+                      Parolni o'zgartirish
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {showChangePasswordForm && selectedUserId && (
+            <ChangePasswordForm
+              userId={selectedUserId}
+              onClose={() => {
+                setShowChangePasswordForm(false);
+                setSelectedUserId(null);
+              }}
+              onSuccess={() => {
+                setShowChangePasswordForm(false);
+                setSelectedUserId(null);
+                alert('Parol muvaffaqiyatli o\'zgartirildi!');
               }}
             />
           )}
@@ -320,12 +401,20 @@ export default function SuperAdminDashboard() {
         <div>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold">Telegram Bot boshqaruvi</h2>
-            <button
-              onClick={() => setShowSendMessageForm(true)}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
-            >
-              Xabar yuborish
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowWelcomeMessageForm(true)}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all"
+              >
+                Welcome xabar sozlash
+              </button>
+              <button
+                onClick={() => setShowSendMessageForm(true)}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
+              >
+                Xabar yuborish
+              </button>
+            </div>
           </div>
 
           {loading ? (
@@ -400,6 +489,52 @@ export default function SuperAdminDashboard() {
               onSuccess={() => {
                 setShowSendMessageForm(false);
                 alert('Xabar yuborildi!');
+              }}
+            />
+          )}
+        </div>
+      )}
+
+      {activeTab === 'settings' && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">Sozlamalar</h2>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="text-xl font-semibold">Sotuvchi bo'lish sahifasi</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Sotuvchilar uchun kontakt sahifasining ma'lumotlarini tahrirlash
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowContactPageForm(true)}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
+                >
+                  Tahrirlash
+                </button>
+              </div>
+              <div className="mt-4">
+                <Link
+                  href="/contact"
+                  target="_blank"
+                  className="text-indigo-600 hover:text-indigo-800 underline"
+                >
+                  Sahifani ko'rish →
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {showContactPageForm && (
+            <ContactPageForm
+              onClose={() => setShowContactPageForm(false)}
+              onSuccess={() => {
+                setShowContactPageForm(false);
+                alert('Ma\'lumotlar saqlandi!');
               }}
             />
           )}
@@ -723,6 +858,122 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
               className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:bg-gray-400 shadow-md hover:shadow-lg transition-all"
             >
               {isSubmitting ? 'Yuborilmoqda...' : 'Yuborish'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ChangePasswordForm({ userId, onClose, onSuccess }: { userId: string; onClose: () => void; onSuccess: () => void }) {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const currentUser = getCurrentUserFromToken();
+  const isSuperAdmin = currentUser?.role === 'super-admin';
+  const isOwnAccount = currentUser?.id === userId;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!newPassword || newPassword.length < 6) {
+      setError('Yangi parol kamida 6 belgidan iborat bo\'lishi kerak');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Yangi parollar mos kelmaydi');
+      return;
+    }
+
+    // Если это не супер-админ и не свой аккаунт, требуем текущий пароль
+    if (!isSuperAdmin && !isOwnAccount) {
+      setError('Siz faqat o\'z parolingizni o\'zgartirishingiz mumkin');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Супер-админ может менять пароль без текущего пароля
+      await userApi.updatePassword(userId, isSuperAdmin ? null : currentPassword, newPassword);
+      onSuccess();
+    } catch (error: any) {
+      setError(error.response?.data?.error || 'Parolni o\'zgartirishda xatolik');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-xl font-bold mb-4">Parolni o'zgartirish</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+          {!isSuperAdmin && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Joriy parol *</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required={!isSuperAdmin}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium mb-1">Yangi parol *</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            />
+            <p className="text-xs text-gray-500 mt-1">Kamida 6 belgi</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Yangi parolni tasdiqlash *</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+          {isSuperAdmin && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-xs text-blue-800">
+                ℹ️ Super-admin sifatida siz joriy parolni kiritmasdan parolni o'zgartirishingiz mumkin
+              </p>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+            >
+              Bekor qilish
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:bg-gray-400 shadow-md hover:shadow-lg transition-all"
+            >
+              {isSubmitting ? 'Saqlanmoqda...' : 'Saqlash'}
             </button>
           </div>
         </form>

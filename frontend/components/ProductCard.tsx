@@ -21,6 +21,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       quantity,
       unit: product.unit || 'dona',
       image: product.image,
+      storeId: product.storeId, // Сохраняем storeId товара
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);

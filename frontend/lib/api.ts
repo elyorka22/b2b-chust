@@ -48,3 +48,24 @@ export const telegramApi = {
   getStats: () => api.get('/api/telegram/stats').then(res => res.data),
 };
 
+// Bot Settings API
+export const botSettingsApi = {
+  getAll: () => api.get('/api/bot/settings').then(res => res.data),
+  get: (key: string) => api.get(`/api/bot/settings/${key}`).then(res => res.data),
+  update: (key: string, value: string) => api.put(`/api/bot/settings/${key}`, { value }).then(res => res.data),
+};
+
+// User Telegram Chat ID API
+export const userApi = {
+  updateTelegramChatId: (userId: string, telegramChatId: number | null) =>
+    api.put(`/api/users/${userId}/telegram-chat-id`, { telegramChatId }).then(res => res.data),
+  updatePassword: (userId: string, currentPassword: string | null, newPassword: string) =>
+    api.put(`/api/users/${userId}/password`, { currentPassword, newPassword }).then(res => res.data),
+};
+
+// Contact Page API
+export const contactPageApi = {
+  get: () => api.get('/api/contact-page').then(res => res.data),
+  update: (data: any) => api.put('/api/contact-page', data).then(res => res.data),
+};
+

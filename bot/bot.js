@@ -18,20 +18,42 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
 console.log('Telegram Bot запущен...');
 
 // Команда /start
-bot.onText(/\/start/, (msg) => {
+bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
   const firstName = msg.from.first_name;
 
-  bot.sendMessage(chatId, `Salom, ${firstName}! 👋\n\nB2B Chust do'koniga xush kelibsiz!`, {
-    reply_markup: {
-      inline_keyboard: [[
-        {
-          text: '🛒 Do\'konni ochish',
-          web_app: { url: FRONTEND_URL }
-        }
-      ]]
-    }
-  });
+  try {
+    // Получаем welcome message из настроек
+    const response = await axios.get(`${BACKEND_URL}/api/bot/settings/welcome_message`);
+    const welcomeMessage = response.data?.value || `Salom, ${firstName}! 👋\n\nB2B Chust do'koniga xush kelibsiz!`;
+    
+    // Заменяем {name} на имя пользователя, если есть
+    const personalizedMessage = welcomeMessage.replace(/{name}/g, firstName);
+
+    bot.sendMessage(chatId, personalizedMessage, {
+      reply_markup: {
+        inline_keyboard: [[
+          {
+            text: '🛒 Do\'konni ochish',
+            web_app: { url: FRONTEND_URL }
+          }
+        ]]
+      }
+    });
+  } catch (error) {
+    console.error('Ошибка получения welcome message:', error);
+    // Fallback на дефолтное сообщение
+    bot.sendMessage(chatId, `Salom, ${firstName}! 👋\n\nB2B Chust do'koniga xush kelibsiz!`, {
+      reply_markup: {
+        inline_keyboard: [[
+          {
+            text: '🛒 Do\'konni ochish',
+            web_app: { url: FRONTEND_URL }
+          }
+        ]]
+      }
+    });
+  }
 });
 
 // Команда /help

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Product, Order } from '@/lib/db';
+import { productsApi, ordersApi, statsApi, userApi } from '@/lib/api';
+import { getCurrentUserFromToken } from '@/lib/auth';
 
 interface StoreDashboardProps {
   storeName?: string;
@@ -26,10 +28,22 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
     }
   }, [activeTab]);
 
+  const [telegramChatId, setTelegramChatId] = useState<string>('');
+  const [showTelegramSetup, setShowTelegramSetup] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Получаем ID текущего пользователя
+    const user = getCurrentUserFromToken();
+    if (user) {
+      setCurrentUserId(user.id);
+    }
+  }, []);
+
   const fetchProducts = async () => {
+    setLoading(true);
     try {
-      const response = await fetch('/api/products');
-      const data = await response.json();
+      const data = await productsApi.getAll();
       setProducts(data);
     } catch (error) {
       console.error('Mahsulotlarni yuklashda xatolik:', error);
@@ -39,9 +53,9 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
   };
 
   const fetchOrders = async () => {
+    setLoading(true);
     try {
-      const response = await fetch('/api/orders');
-      const data = await response.json();
+      const data = await ordersApi.getAll();
       setOrders(data);
     } catch (error) {
       console.error('Buyurtmalarni yuklashda xatolik:', error);
@@ -51,9 +65,9 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
   };
 
   const fetchStats = async () => {
+    setLoading(true);
     try {
-      const response = await fetch('/api/stats');
-      const data = await response.json();
+      const data = await statsApi.get();
       setStats(data);
     } catch (error) {
       console.error('Statistikani yuklashda xatolik:', error);
@@ -98,6 +112,39 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
       <h1 className="text-3xl font-bold mb-2">Magazin paneli</h1>
       {storeName && (
         <p className="text-gray-600 mb-6">Magazin: {storeName}</p>
+      )}
+
+      {/* Telegram Chat ID настройка */}
+      {currentUserId && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="font-semibold text-blue-900 mb-1">Telegram xabarnomalar</h3>
+              <p className="text-sm text-blue-700">
+                Yangi buyurtmalar haqida xabar olish uchun Telegram Chat ID ni kiriting
+              </p>
+            </div>
+            <button
+              onClick={() => setShowTelegramSetup(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all text-sm"
+            >
+              {telegramChatId ? 'O\'zgartirish' : 'Sozlash'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showTelegramSetup && currentUserId && (
+        <TelegramChatIdForm
+          userId={currentUserId}
+          currentChatId={telegramChatId}
+          onClose={() => setShowTelegramSetup(false)}
+          onSuccess={async (chatId) => {
+            setTelegramChatId(chatId || '');
+            setShowTelegramSetup(false);
+            alert('Telegram Chat ID saqlandi! Endi siz yangi buyurtmalar haqida xabar olasiz.');
+          }}
+        />
       )}
 
       <div className="mb-6 flex gap-2 border-b">
@@ -403,6 +450,84 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
               type="submit"
               disabled={isSubmitting}
               className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:bg-gray-400 shadow-md hover:shadow-lg transition-all"
+            >
+              {isSubmitting ? 'Saqlanmoqda...' : 'Saqlash'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function TelegramChatIdForm({ userId, currentChatId, onClose, onSuccess }: { userId: string; currentChatId: string; onClose: () => void; onSuccess: (chatId: string | null) => void }) {
+  const [chatId, setChatId] = useState(currentChatId || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (chatId && isNaN(Number(chatId))) {
+      setError('Chat ID raqam bo\'lishi kerak');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await userApi.updateTelegramChatId(userId, chatId ? Number(chatId) : null);
+      onSuccess(chatId || null);
+    } catch (error: any) {
+      setError(error.response?.data?.error || 'Chat ID ni saqlashda xatolik');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-xl font-bold mb-4">Telegram Chat ID sozlash</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium mb-1">Telegram Chat ID *</label>
+            <input
+              type="number"
+              value={chatId}
+              onChange={(e) => setChatId(e.target.value)}
+              placeholder="123456789"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              💡 Chat ID ni olish uchun @userinfobot ga /start yuboring
+            </p>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <p className="text-xs text-gray-600">
+              <strong>Qanday olish:</strong><br />
+              1. Telegram da @userinfobot ni oching<br />
+              2. /start buyrug'ini yuboring<br />
+              3. "Id" raqamini ko'chirib, bu yerga yozing
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+            >
+              Bekor qilish
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:bg-gray-400 shadow-md hover:shadow-lg transition-all"
             >
               {isSubmitting ? 'Saqlanmoqda...' : 'Saqlash'}
             </button>

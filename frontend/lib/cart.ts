@@ -7,6 +7,7 @@ export interface CartItem {
   quantity: number;
   unit?: string;
   image?: string;
+  storeId?: string; // ID магазина-владельца товара
 }
 
 export function getCart(): CartItem[] {

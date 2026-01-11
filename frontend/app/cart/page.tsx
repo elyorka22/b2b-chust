@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import { CartItem, getCart, removeFromCart, updateCartItem, clearCart, getCartTotal } from '@/lib/cart';
+import { API_BASE_URL } from '@/lib/config';
 
 export default function CartPage() {
   const router = useRouter();
@@ -52,13 +53,23 @@ export default function CartPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/orders', {
+      // Преобразуем items для backend (добавляем store_id)
+      const orderItems = cart.map(item => ({
+        product_id: item.productId,
+        product_name: item.productName,
+        quantity: item.quantity,
+        price: item.price,
+        unit: item.unit || 'dona',
+        store_id: item.storeId, // Добавляем store_id для уведомлений
+      }));
+
+      const response = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           phone,
           address,
-          items: cart,
+          items: orderItems,
         }),
       });
 

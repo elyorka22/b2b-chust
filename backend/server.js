@@ -217,7 +217,7 @@ app.post('/api/orders', async (req, res) => {
 
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    const { data, error } = await supabaseAdmin
+    const { data: order, error } = await supabaseAdmin
       .from('b2b_orders')
       .insert({
         phone,
@@ -230,7 +230,17 @@ app.post('/api/orders', async (req, res) => {
       .single();
 
     if (error) throw error;
-    res.status(201).json(data);
+
+    // Отправляем уведомления продавцам о новом заказе
+    try {
+      const { sendOrderNotification } = await import('./api/telegram.js');
+      await sendOrderNotification(order, supabaseAdmin);
+    } catch (notifError) {
+      console.error('Ошибка отправки уведомлений:', notifError);
+      // Не прерываем создание заказа, если уведомление не отправилось
+    }
+
+    res.status(201).json(order);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -281,7 +291,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const isValid = await verifyPassword(password, user.password);
+    const isValid = await verifyPassword(password, user.password_hash);
     if (!isValid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -389,7 +399,7 @@ app.post('/api/users', requireAuth, async (req, res) => {
       .from('b2b_users')
       .insert({
         username,
-        password: hashedPassword,
+        password_hash: hashedPassword,
         role,
         store_name: role === 'magazin' ? storeName : null,
       })
@@ -448,6 +458,321 @@ app.get('/api/stats', requireAuth, async (req, res) => {
     };
 
     res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========== BOT SETTINGS API ==========
+app.get('/api/bot/settings', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('b2b_bot_settings')
+      .select('*');
+
+    if (error) throw error;
+
+    // Преобразуем массив в объект
+    const settings = {};
+    (data || []).forEach(setting => {
+      settings[setting.key] = setting.value;
+    });
+
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========== CONTACT PAGE SETTINGS API ==========
+app.get('/api/contact-page', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const keys = [
+      'contact_page_title',
+      'contact_page_description',
+      'contact_page_phone',
+      'contact_page_email',
+      'contact_page_telegram',
+      'contact_page_address',
+      'contact_page_how_it_works',
+    ];
+
+    const { data, error } = await supabaseAdmin
+      .from('b2b_bot_settings')
+      .select('*')
+      .in('key', keys);
+
+    if (error) throw error;
+
+    // Преобразуем массив в объект
+    const settings: any = {};
+    (data || []).forEach(setting => {
+      settings[setting.key] = setting.value;
+    });
+
+    // Парсим how_it_works как массив
+    if (settings.contact_page_how_it_works) {
+      settings.contact_page_how_it_works = settings.contact_page_how_it_works.split('|');
+    }
+
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/contact-page', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'super-admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const {
+      title,
+      description,
+      phone,
+      email,
+      telegram,
+      address,
+      howItWorks,
+    } = req.body;
+
+    const updates = [];
+
+    if (title !== undefined) {
+      updates.push({ key: 'contact_page_title', value: title });
+    }
+    if (description !== undefined) {
+      updates.push({ key: 'contact_page_description', value: description });
+    }
+    if (phone !== undefined) {
+      updates.push({ key: 'contact_page_phone', value: phone });
+    }
+    if (email !== undefined) {
+      updates.push({ key: 'contact_page_email', value: email });
+    }
+    if (telegram !== undefined) {
+      updates.push({ key: 'contact_page_telegram', value: telegram });
+    }
+    if (address !== undefined) {
+      updates.push({ key: 'contact_page_address', value: address });
+    }
+    if (howItWorks !== undefined) {
+      // Преобразуем массив в строку с разделителем |
+      const howItWorksStr = Array.isArray(howItWorks) 
+        ? howItWorks.join('|') 
+        : howItWorks;
+      updates.push({ key: 'contact_page_how_it_works', value: howItWorksStr });
+    }
+
+    // Обновляем все настройки
+    const results = await Promise.all(
+      updates.map(update =>
+        supabaseAdmin
+          .from('b2b_bot_settings')
+          .upsert({
+            key: update.key,
+            value: update.value,
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single()
+      )
+    );
+
+    // Получаем обновленные данные
+    const { data, error } = await supabaseAdmin
+      .from('b2b_bot_settings')
+      .select('*')
+      .in('key', [
+        'contact_page_title',
+        'contact_page_description',
+        'contact_page_phone',
+        'contact_page_email',
+        'contact_page_telegram',
+        'contact_page_address',
+        'contact_page_how_it_works',
+      ]);
+
+    if (error) throw error;
+
+    const settings: any = {};
+    (data || []).forEach(setting => {
+      settings[setting.key] = setting.value;
+    });
+
+    if (settings.contact_page_how_it_works) {
+      settings.contact_page_how_it_works = settings.contact_page_how_it_works.split('|');
+    }
+
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/bot/settings/:key', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { key } = req.params;
+    const { data, error } = await supabaseAdmin
+      .from('b2b_bot_settings')
+      .select('*')
+      .eq('key', key)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    if (!data) {
+      return res.status(404).json({ error: 'Setting not found' });
+    }
+
+    res.json({ key: data.key, value: data.value });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/bot/settings/:key', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'super-admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { key } = req.params;
+    const { value } = req.body;
+
+    if (value === undefined) {
+      return res.status(400).json({ error: 'Value is required' });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('b2b_bot_settings')
+      .upsert({
+        key,
+        value,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json({ key: data.key, value: data.value });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========== USER PASSWORD API ==========
+app.put('/api/users/:id/password', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    // Пользователь может изменить только свой пароль, супер-админ может изменить любой
+    if (req.user.id !== id && req.user.role !== 'super-admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters' });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    // Получаем пользователя
+    const { data: user, error: userError } = await supabaseAdmin
+      .from('b2b_users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (userError || !user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Если это не супер-админ, проверяем текущий пароль
+    if (req.user.id === id && req.user.role !== 'super-admin') {
+      if (!currentPassword) {
+        return res.status(400).json({ error: 'Current password is required' });
+      }
+
+      const isValid = await verifyPassword(currentPassword, user.password_hash);
+      if (!isValid) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+    }
+
+    // Хешируем новый пароль
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Обновляем пароль
+    const { data, error } = await supabaseAdmin
+      .from('b2b_users')
+      .update({ password_hash: hashedPassword })
+      .eq('id', id)
+      .select('id, username, role')
+      .single();
+
+    if (error) throw error;
+    res.json({
+      id: data.id,
+      username: data.username,
+      message: 'Password updated successfully',
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========== USER TELEGRAM CHAT ID API ==========
+app.put('/api/users/:id/telegram-chat-id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { telegramChatId } = req.body;
+
+    // Пользователь может обновить только свой chat_id
+    if (req.user.id !== id && req.user.role !== 'super-admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('b2b_users')
+      .update({ telegram_chat_id: telegramChatId ? parseInt(telegramChatId) : null })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json({
+      id: data.id,
+      username: data.username,
+      telegramChatId: data.telegram_chat_id,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
