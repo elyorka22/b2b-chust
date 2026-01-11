@@ -513,7 +513,7 @@ app.get('/api/contact-page', async (req, res) => {
     if (error) throw error;
 
     // Преобразуем массив в объект
-    const settings: any = {};
+    const settings = {};
     (data || []).forEach(setting => {
       settings[setting.key] = setting.value;
     });
@@ -608,7 +608,7 @@ app.put('/api/contact-page', requireAuth, async (req, res) => {
 
     if (error) throw error;
 
-    const settings: any = {};
+    const settings = {};
     (data || []).forEach(setting => {
       settings[setting.key] = setting.value;
     });
