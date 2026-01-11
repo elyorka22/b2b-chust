@@ -980,3 +980,227 @@ function ChangePasswordForm({ userId, onClose, onSuccess }: { userId: string; on
     </div>
   );
 }
+
+function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    phone: '',
+    email: '',
+    telegram: '',
+    address: '',
+    howItWorks: ['', '', '', ''],
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    contactPageApi.get()
+      .then(data => {
+        if (data) {
+          setFormData({
+            title: data.contact_page_title || '',
+            description: data.contact_page_description || '',
+            phone: data.contact_page_phone || '',
+            email: data.contact_page_email || '',
+            telegram: data.contact_page_telegram || '',
+            address: data.contact_page_address || '',
+            howItWorks: data.contact_page_how_it_works || ['', '', '', ''],
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Ошибка загрузки данных:', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!formData.title || !formData.description || !formData.phone || !formData.email) {
+      setError('Barcha majburiy maydonlarni to\'ldiring');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await contactPageApi.update({
+        title: formData.title,
+        description: formData.description,
+        phone: formData.phone,
+        email: formData.email,
+        telegram: formData.telegram,
+        address: formData.address,
+        howItWorks: formData.howItWorks.filter(item => item.trim() !== ''),
+      });
+      onSuccess();
+    } catch (error: any) {
+      setError(error.response?.data?.error || 'Ma\'lumotlarni saqlashda xatolik');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const addHowItWorksItem = () => {
+    setFormData({
+      ...formData,
+      howItWorks: [...formData.howItWorks, ''],
+    });
+  };
+
+  const removeHowItWorksItem = (index: number) => {
+    setFormData({
+      ...formData,
+      howItWorks: formData.howItWorks.filter((_, i) => i !== index),
+    });
+  };
+
+  const updateHowItWorksItem = (index: number, value: string) => {
+    const newHowItWorks = [...formData.howItWorks];
+    newHowItWorks[index] = value;
+    setFormData({
+      ...formData,
+      howItWorks: newHowItWorks,
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+          <div className="text-center py-12">Yuklanmoqda...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 max-w-3xl w-full my-8">
+        <h3 className="text-xl font-bold mb-4">Sotuvchi bo'lish sahifasini tahrirlash</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium mb-1">Sarlavha *</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Tavsif *</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              required
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Telefon *</label>
+              <input
+                type="text"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Email *</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Telegram</label>
+              <input
+                type="text"
+                value={formData.telegram}
+                onChange={(e) => setFormData({ ...formData, telegram: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Manzil</label>
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Qanday ishlaydi?</label>
+            <div className="space-y-2">
+              {formData.howItWorks.map((item, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={item}
+                    onChange={(e) => updateHowItWorksItem(index, e.target.value)}
+                    placeholder={`${index + 1}-qadam`}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                  />
+                  {formData.howItWorks.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeHowItWorksItem(index)}
+                      className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                    >
+                      O'chirish
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addHowItWorksItem}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+              >
+                + Qadam qo'shish
+              </button>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+            >
+              Bekor qilish
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:bg-gray-400 shadow-md hover:shadow-lg transition-all"
+            >
+              {isSubmitting ? 'Saqlanmoqda...' : 'Saqlash'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
