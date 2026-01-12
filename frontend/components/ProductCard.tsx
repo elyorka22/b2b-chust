@@ -53,9 +53,21 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="relative overflow-hidden bg-gray-50">
         {product.image ? (
           <img
-            src={product.image}
+            src={product.image.startsWith('http') ? product.image : product.image.startsWith('/') ? product.image : `/${product.image}`}
             alt={product.name}
             className="w-full h-40 md:h-56 object-cover transition-transform duration-300 hover:scale-105"
+            onError={(e) => {
+              // Если изображение не загрузилось, заменяем на placeholder
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const parent = target.parentElement;
+              if (parent && !parent.querySelector('.image-placeholder')) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'image-placeholder w-full h-40 md:h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center';
+                placeholder.innerHTML = '<span class="text-gray-400 text-xs md:text-sm">Rasm yo\'q</span>';
+                parent.appendChild(placeholder);
+              }
+            }}
           />
         ) : (
           <div className="w-full h-40 md:h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">

@@ -55,6 +55,18 @@ export default function ProductCard({ product }: ProductCardProps) {
             src={product.image}
             alt={product.name}
             className="w-full h-40 md:h-56 object-cover transition-transform duration-300 hover:scale-105"
+            onError={(e) => {
+              // Если изображение не загрузилось, заменяем на placeholder
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const parent = target.parentElement;
+              if (parent) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'w-full h-40 md:h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center';
+                placeholder.innerHTML = '<span class="text-gray-400 text-xs md:text-sm">Rasm yo\'q</span>';
+                parent.appendChild(placeholder);
+              }
+            }}
           />
         ) : (
           <div className="w-full h-40 md:h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
