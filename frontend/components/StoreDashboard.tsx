@@ -404,12 +404,15 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
-        <h3 className="text-xl font-bold mb-4">
-          {product ? 'Mahsulotni tahrirlash' : 'Mahsulot qo\'shish'}
-        </h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] flex flex-col">
+        <div className="p-6 pb-4 border-b border-gray-200 flex-shrink-0">
+          <h3 className="text-xl font-bold">
+            {product ? 'Mahsulotni tahrirlash' : 'Mahsulot qo\'shish'}
+          </h3>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="p-6 pt-4 overflow-y-auto flex-1 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-900">Nomi *</label>
             <input
@@ -549,7 +552,8 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
-          <div className="flex gap-2">
+          </div>
+          <div className="p-6 pt-4 border-t border-gray-200 flex gap-2 flex-shrink-0">
             <button
               type="button"
               onClick={onClose}
