@@ -63,7 +63,7 @@ type SupabaseCustomer = {
 
 // Конвертеры из Supabase формата в наш формат
 function convertProduct(row: SupabaseProduct): Product {
-  return {
+  const product = {
     id: row.id,
     name: row.name,
     description: row.description || '',
@@ -76,6 +76,8 @@ function convertProduct(row: SupabaseProduct): Product {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+  console.log('convertProduct: преобразование товара:', { id: product.id, name: product.name, image: product.image, hasImage: !!product.image });
+  return product;
 }
 
 function convertOrder(row: SupabaseOrder): Order {

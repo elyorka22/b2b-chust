@@ -408,6 +408,8 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
         console.log('Создание нового товара');
         const createdProduct = await productsApi.create(submitData);
         console.log('Товар создан:', createdProduct);
+        console.log('URL изображения в созданном товаре:', createdProduct?.image);
+        console.log('Есть ли изображение:', !!createdProduct?.image);
       }
       onSuccess();
     } catch (error) {
