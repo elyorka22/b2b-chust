@@ -443,6 +443,11 @@ app.post('/api/users', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Валидация для роли magazin
+    if (role === 'magazin' && (!storeName || storeName.trim() === '')) {
+      return res.status(400).json({ error: 'Magazin nomi majburiy (storeName is required for magazin role)' });
+    }
+
     const hashedPassword = await hashPassword(password);
 
     const { data, error } = await supabaseAdmin
@@ -451,12 +456,19 @@ app.post('/api/users', requireAuth, async (req, res) => {
         username,
         password_hash: hashedPassword,
         role,
-        store_name: role === 'magazin' ? storeName : null,
+        store_name: role === 'magazin' ? (storeName || null) : null,
       })
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('[API] Ошибка создания пользователя:', error);
+      // Проверяем на дубликат username
+      if (error.code === '23505' || error.message.includes('duplicate') || error.message.includes('unique')) {
+        return res.status(400).json({ error: 'Foydalanuvchi nomi allaqachon mavjud (Username already exists)' });
+      }
+      throw error;
+    }
     res.status(201).json({
       id: data.id,
       username: data.username,
@@ -509,6 +521,144 @@ app.get('/api/stats', requireAuth, async (req, res) => {
 
     res.json(stats);
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========== SALES STATS API ==========
+app.get('/api/stats/sales', requireAuth, async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    // Получаем все завершенные заказы
+    const { data: orders, error: ordersError } = await supabaseAdmin
+      .from('b2b_orders')
+      .select('*')
+      .eq('status', 'completed');
+
+    if (ordersError) throw ordersError;
+
+    // Если это магазин, фильтруем по его товарам
+    let filteredOrders = orders || [];
+    if (req.user.role === 'magazin') {
+      const { data: products } = await supabaseAdmin
+        .from('b2b_products')
+        .select('id')
+        .eq('store_id', req.user.id);
+      
+      const storeProductIds = new Set((products || []).map(p => p.id));
+      
+      filteredOrders = orders.filter(order => {
+        const items = order.items || [];
+        return items.some((item: any) => storeProductIds.has(item.productId));
+      }).map(order => {
+        const items = (order.items || []).filter((item: any) => storeProductIds.has(item.productId));
+        return { ...order, items };
+      });
+    }
+
+    // Функция для получения начала недели (понедельник)
+    const getWeekStart = (date) => {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      const weekStart = new Date(d.setDate(diff));
+      weekStart.setHours(0, 0, 0, 0);
+      return weekStart;
+    };
+
+    // Функция для получения начала месяца
+    const getMonthStart = (date) => {
+      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+      monthStart.setHours(0, 0, 0, 0);
+      return monthStart;
+    };
+
+    const now = new Date();
+    const weekStart = getWeekStart(now);
+    const monthStart = getMonthStart(now);
+
+    // Группируем товары по productId
+    const productStats = {};
+
+    filteredOrders.forEach(order => {
+      const orderDate = new Date(order.created_at);
+      const isThisWeek = orderDate >= weekStart;
+      const isThisMonth = orderDate >= monthStart;
+
+      const items = order.items || [];
+      items.forEach(item => {
+        const productId = item.productId || item.product_id;
+        const productName = item.productName || item.product_name || 'Noma\'lum mahsulot';
+        const quantity = item.quantity || 0;
+        const price = parseFloat(item.price) || 0;
+        const revenue = price * quantity;
+
+        if (!productStats[productId]) {
+          productStats[productId] = {
+            productId,
+            productName,
+            totalQuantity: 0,
+            totalRevenue: 0,
+            weekQuantity: 0,
+            weekRevenue: 0,
+            monthQuantity: 0,
+            monthRevenue: 0,
+          };
+        }
+
+        productStats[productId].totalQuantity += quantity;
+        productStats[productId].totalRevenue += revenue;
+
+        if (isThisWeek) {
+          productStats[productId].weekQuantity += quantity;
+          productStats[productId].weekRevenue += revenue;
+        }
+
+        if (isThisMonth) {
+          productStats[productId].monthQuantity += quantity;
+          productStats[productId].monthRevenue += revenue;
+        }
+      });
+    });
+
+    // Преобразуем в массив и сортируем
+    const allProducts = Object.values(productStats);
+
+    const topByWeek = allProducts
+      .filter(p => p.weekQuantity > 0)
+      .sort((a, b) => b.weekQuantity - a.weekQuantity)
+      .slice(0, 10);
+
+    const topByMonth = allProducts
+      .filter(p => p.monthQuantity > 0)
+      .sort((a, b) => b.monthQuantity - a.monthQuantity)
+      .slice(0, 10);
+
+    const topByRevenueWeek = allProducts
+      .filter(p => p.weekRevenue > 0)
+      .sort((a, b) => b.weekRevenue - a.weekRevenue)
+      .slice(0, 10);
+
+    const topByRevenueMonth = allProducts
+      .filter(p => p.monthRevenue > 0)
+      .sort((a, b) => b.monthRevenue - a.monthRevenue)
+      .slice(0, 10);
+
+    res.json({
+      week: {
+        byQuantity: topByWeek,
+        byRevenue: topByRevenueWeek,
+      },
+      month: {
+        byQuantity: topByMonth,
+        byRevenue: topByRevenueMonth,
+      },
+    });
+  } catch (error) {
+    console.error('[API] Ошибка получения статистики продаж:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -675,30 +825,40 @@ app.put('/api/contact-page', requireAuth, async (req, res) => {
 
 app.get('/api/bot/settings/:key', async (req, res) => {
   try {
+    console.log(`[API] GET /api/bot/settings/${req.params.key}`);
+    
     if (!supabaseAdmin) {
+      console.error('[API] Supabase не настроен');
       return res.status(500).json({ error: 'Database not configured' });
     }
 
     const { key } = req.params;
+    console.log(`[API] Поиск настройки с ключом: ${key}`);
+    
     const { data, error } = await supabaseAdmin
       .from('b2b_bot_settings')
       .select('*')
       .eq('key', key)
       .single();
 
+    console.log(`[API] Результат запроса:`, { hasData: !!data, error: error?.message, errorCode: error?.code });
+
     if (error && error.code !== 'PGRST116') {
       // Если это не ошибка "не найдено", выбрасываем ошибку
+      console.error('[API] Ошибка при получении настройки:', error);
       throw error;
     }
     
     // Если настройка не найдена, возвращаем null вместо 404
     if (!data) {
+      console.log(`[API] Настройка ${key} не найдена, возвращаем null`);
       return res.json({ key, value: null });
     }
 
+    console.log(`[API] Настройка найдена:`, { key: data.key, valueLength: data.value?.length });
     res.json({ key: data.key, value: data.value });
   } catch (error) {
-    console.error('Ошибка получения настройки бота:', error);
+    console.error('[API] Ошибка получения настройки бота:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -750,24 +910,34 @@ app.put('/api/bot/settings/:key', requireAuth, async (req, res) => {
 // ========== BOT USERS API ==========
 app.post('/api/bot/users', async (req, res) => {
   try {
+    console.log('[API] POST /api/bot/users - сохранение пользователя бота');
+    
     if (!supabaseAdmin) {
+      console.error('[API] Supabase не настроен');
       return res.status(500).json({ error: 'Database not configured' });
     }
 
     const { chatId, firstName, lastName, username } = req.body;
+    console.log('[API] Данные пользователя:', { chatId, firstName, lastName, username });
 
     if (!chatId) {
       return res.status(400).json({ error: 'chatId is required' });
     }
 
     // Проверяем, существует ли пользователь с таким chatId
-    const { data: existing } = await supabaseAdmin
+    const { data: existing, error: checkError } = await supabaseAdmin
       .from('b2b_bot_users')
       .select('*')
       .eq('chat_id', chatId)
       .single();
 
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('[API] Ошибка проверки существующего пользователя:', checkError);
+      // Если это не ошибка "не найдено", пробуем создать
+    }
+
     if (existing) {
+      console.log('[API] Пользователь существует, обновляем');
       // Обновляем существующего пользователя
       const { data, error } = await supabaseAdmin
         .from('b2b_bot_users')
@@ -781,9 +951,14 @@ app.post('/api/bot/users', async (req, res) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[API] Ошибка обновления пользователя:', error);
+        throw error;
+      }
+      console.log('[API] Пользователь обновлен:', data);
       return res.json(data);
     } else {
+      console.log('[API] Пользователь не существует, создаем нового');
       // Создаем нового пользователя
       const { data, error } = await supabaseAdmin
         .from('b2b_bot_users')
@@ -797,13 +972,102 @@ app.post('/api/bot/users', async (req, res) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[API] Ошибка создания пользователя:', error);
+        console.error('[API] Код ошибки:', error.code);
+        console.error('[API] Сообщение ошибки:', error.message);
+        throw error;
+      }
+      console.log('[API] Пользователь создан:', data);
       return res.json(data);
     }
-  } catch (error) {
-    console.error('Ошибка сохранения пользователя бота:', error);
+  } catch (error: any) {
+    console.error('[API] Ошибка сохранения пользователя бота:', error);
+    console.error('[API] Детали ошибки:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     // Не возвращаем ошибку, чтобы не блокировать работу бота
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true, error: error.message });
+  }
+});
+
+// ========== TELEGRAM MASS SEND API ==========
+app.post('/api/telegram/send-mass', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'super-admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { message, webAppUrl } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    // Получаем всех пользователей бота
+    const { data: botUsers, error: usersError } = await supabaseAdmin
+      .from('b2b_bot_users')
+      .select('chat_id, first_name');
+
+    if (usersError) {
+      console.error('[API] Ошибка получения пользователей бота:', usersError);
+      return res.status(500).json({ error: 'Failed to get bot users' });
+    }
+
+    if (!botUsers || botUsers.length === 0) {
+      return res.status(400).json({ error: 'No bot users found' });
+    }
+
+    const { sendMessage } = await import('./api/telegram.js');
+    
+    console.log(`[API] Массовая отправка сообщения ${botUsers.length} пользователям`);
+    
+    // Отправляем сообщение всем пользователям
+    const results = await Promise.allSettled(
+      botUsers.map((user, index) => {
+        // Персонализируем сообщение, заменяя {name} на имя пользователя
+        let personalizedMessage = message;
+        if (user.first_name) {
+          personalizedMessage = message.replace(/{name}/g, user.first_name);
+        }
+
+        const options = webAppUrl ? {
+          reply_markup: {
+            inline_keyboard: [[
+              {
+                text: '🛒 Do\'konni ochish',
+                web_app: { url: webAppUrl }
+              }
+            ]]
+          }
+        } : {};
+
+        console.log(`[API] Отправка сообщения пользователю ${index + 1}/${botUsers.length} (chat_id: ${user.chat_id})`);
+        
+        return sendMessage(user.chat_id, personalizedMessage, options);
+      })
+    );
+
+    const successful = results.filter(r => r.status === 'fulfilled').length;
+    const failed = results.filter(r => r.status === 'rejected').length;
+
+    res.json({
+      success: true,
+      total: botUsers.length,
+      successful,
+      failed,
+      message: `Xabar ${successful} ta foydalanuvchiga yuborildi. ${failed > 0 ? `${failed} ta xatolik yuz berdi.` : ''}`
+    });
+  } catch (error) {
+    console.error('[API] Ошибка массовой отправки:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -937,16 +1201,24 @@ app.post('/api/telegram/send', requireAuth, async (req, res) => {
 
 app.get('/api/telegram/stats', requireAuth, async (req, res) => {
   try {
+    console.log('[API] GET /api/telegram/stats - запрос статистики');
+    
     if (req.user.role !== 'super-admin') {
+      console.log('[API] Доступ запрещен - не super-admin');
       return res.status(403).json({ error: 'Forbidden' });
     }
 
     const { getBotInfo, getBotStats } = await import('./api/telegram.js');
     const botInfo = await getBotInfo();
+    console.log('[API] Bot info:', botInfo);
+    
     const stats = await getBotStats(supabaseAdmin);
+    console.log('[API] Bot stats:', stats);
+    console.log('[API] Отправка ответа:', { botInfo, stats });
 
     res.json({ botInfo, stats });
   } catch (error) {
+    console.error('[API] Ошибка получения статистики Telegram:', error);
     res.status(500).json({ error: error.message });
   }
 });
