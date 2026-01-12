@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db-wrapper';
 import { requireAuth } from '@/lib/auth';
 
 export async function PUT(
@@ -9,7 +9,8 @@ export async function PUT(
   try {
     const user = await requireAuth();
     const { id } = await params;
-    const product = db.products.getById(id);
+    const db = await getDb();
+    const product = await db.products.getById(id);
     
     if (!product) {
       return NextResponse.json(
@@ -27,8 +28,17 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const updatedProduct = db.products.update(id, body);
+    console.log('Обновление товара:', { id, image: body.image, hasImage: !!body.image });
+    const updatedProduct = await db.products.update(id, body);
     
+    if (!updatedProduct) {
+      return NextResponse.json(
+        { error: 'Товар не найден' },
+        { status: 404 }
+      );
+    }
+    
+    console.log('Товар обновлен:', { id: updatedProduct.id, image: updatedProduct.image });
     return NextResponse.json(updatedProduct);
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
@@ -57,7 +67,8 @@ export async function DELETE(
   try {
     const user = await requireAuth();
     const { id } = await params;
-    const product = db.products.getById(id);
+    const db = await getDb();
+    const product = await db.products.getById(id);
     
     if (!product) {
       return NextResponse.json(
@@ -74,7 +85,7 @@ export async function DELETE(
       );
     }
 
-    const success = db.products.delete(id);
+    const success = await db.products.delete(id);
     
     if (!success) {
       return NextResponse.json(

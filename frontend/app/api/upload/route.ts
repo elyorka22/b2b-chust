@@ -5,10 +5,14 @@ import { existsSync } from 'fs';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== Начало загрузки файла (frontend) ===');
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
+    console.log('Получен файл:', file ? { name: file.name, size: file.size, type: file.type } : 'null');
+
     if (!file) {
+      console.error('Файл не найден в FormData');
       return NextResponse.json(
         { error: 'Файл не найден' },
         { status: 400 }
@@ -44,17 +48,27 @@ export async function POST(request: NextRequest) {
 
     // Пытаемся загрузить в Supabase Storage, если доступен
     let supabaseAdmin: any = null;
+    const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    console.log('Проверка Supabase:', { hasSupabaseUrl, hasServiceKey });
+    
     try {
-      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      if (hasSupabaseUrl && hasServiceKey) {
+        console.log('Импортируем Supabase модуль...');
         const supabaseModule = await import('@/lib/supabase');
         supabaseAdmin = supabaseModule.supabaseAdmin;
+        console.log('Supabase модуль загружен:', !!supabaseAdmin);
+      } else {
+        console.log('Supabase переменные окружения не настроены, используем локальное хранилище');
       }
     } catch (error) {
-      console.warn('Supabase не доступен, будет использовано локальное хранилище');
+      console.warn('Supabase не доступен, будет использовано локальное хранилище:', error);
     }
 
     if (supabaseAdmin) {
       try {
+        console.log('Попытка загрузки в Supabase Storage:', filePath);
         const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
           .from('product-images')
           .upload(filePath, buffer, {
@@ -62,12 +76,19 @@ export async function POST(request: NextRequest) {
             upsert: false,
           });
 
+        console.log('Результат загрузки в Supabase:', { 
+          hasData: !!uploadData, 
+          hasError: !!uploadError,
+          error: uploadError ? uploadError.message : null 
+        });
+
         if (!uploadError) {
           // Получаем публичный URL загруженного файла
           const { data: urlData } = supabaseAdmin.storage
             .from('product-images')
             .getPublicUrl(filePath);
 
+          console.log('Публичный URL:', urlData.publicUrl);
           return NextResponse.json({ url: urlData.publicUrl }, { status: 200 });
         }
 
@@ -104,16 +125,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Fallback: сохраняем локально в public/uploads
+    console.log('Используем локальное хранилище');
     const uploadsDir = join(process.cwd(), 'public', 'uploads');
+    console.log('Путь к папке uploads:', uploadsDir);
+    
     if (!existsSync(uploadsDir)) {
+      console.log('Создаем папку uploads');
       await mkdir(uploadsDir, { recursive: true });
     }
 
     const localFilePath = join(uploadsDir, filename);
+    console.log('Сохраняем файл:', localFilePath);
     await writeFile(localFilePath, buffer);
+    console.log('Файл сохранен успешно');
 
     // Возвращаем URL файла
     const url = `/uploads/${filename}`;
+    console.log('Возвращаем URL:', url);
     return NextResponse.json({ url }, { status: 200 });
   } catch (error: any) {
     console.error('Ошибка при загрузке файла:', error);

@@ -139,22 +139,38 @@ export const supabaseDb = {
     },
     
     create: async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> => {
+      console.log('Supabase create product:', { 
+        name: product.name, 
+        image: product.image, 
+        hasImage: !!product.image,
+        imageLength: product.image?.length 
+      });
+      
+      const insertData = {
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        unit: product.unit || 'dona',
+        image: product.image || null,
+        category: product.category || null,
+        stock: product.stock,
+        store_id: product.storeId || null,
+      };
+      
+      console.log('Данные для вставки в Supabase:', insertData);
+      
       const { data, error } = await supabaseAdmin
         .from('b2b_products')
-        .insert({
-          name: product.name,
-          description: product.description,
-          price: product.price,
-          unit: product.unit || 'dona',
-          image: product.image || null,
-          category: product.category || null,
-          stock: product.stock,
-          store_id: product.storeId || null,
-        })
+        .insert(insertData)
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Ошибка при создании товара в Supabase:', error);
+        throw error;
+      }
+      
+      console.log('Товар создан в Supabase:', { id: data.id, image: data.image });
       return convertProduct(data);
     },
     

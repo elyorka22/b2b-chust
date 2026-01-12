@@ -362,25 +362,40 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
       // Если выбран файл, загружаем его
       if (imageMode === 'file' && selectedFile) {
         setUploadingImage(true);
+        console.log('Начинаем загрузку файла:', selectedFile.name, selectedFile.size, selectedFile.type);
+        
         const uploadFormData = new FormData();
         uploadFormData.append('file', selectedFile);
         
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: uploadFormData,
-        });
+        try {
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            body: uploadFormData,
+          });
 
-        if (!uploadResponse.ok) {
-          const error = await uploadResponse.json();
-          alert(error.error || 'Rasmni yuklashda xatolik');
+          console.log('Ответ от /api/upload:', uploadResponse.status, uploadResponse.statusText);
+
+          if (!uploadResponse.ok) {
+            const error = await uploadResponse.json();
+            console.error('Ошибка загрузки:', error);
+            alert(error.error || 'Rasmni yuklashda xatolik');
+            setIsSubmitting(false);
+            setUploadingImage(false);
+            return;
+          }
+
+          const uploadData = await uploadResponse.json();
+          console.log('Данные загрузки:', uploadData);
+          imageUrl = uploadData.url;
+          console.log('URL изображения:', imageUrl);
+          setUploadingImage(false);
+        } catch (uploadError) {
+          console.error('Ошибка при загрузке файла:', uploadError);
+          alert('Rasmni yuklashda xatolik: ' + (uploadError instanceof Error ? uploadError.message : 'Неизвестная ошибка'));
           setIsSubmitting(false);
           setUploadingImage(false);
           return;
         }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-        setUploadingImage(false);
       }
 
       const submitData = { ...formData, image: imageUrl };

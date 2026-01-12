@@ -120,30 +120,42 @@ app.post('/api/products', requireAuth, async (req, res) => {
 
     const { name, description, price, unit, image, category, stock, storeId } = req.body;
 
+    console.log('Backend: Создание товара:', { name, image, hasImage: !!image, imageLength: image?.length });
+
     if (!name || !description || price === undefined || stock === undefined || !unit) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     const store_id = req.user.role === 'magazin' ? req.user.id : storeId || null;
 
+    const insertData = {
+      name,
+      description,
+      price,
+      unit: unit || 'dona',
+      image: image || null,
+      category: category || null,
+      stock,
+      store_id,
+    };
+
+    console.log('Backend: Данные для вставки в Supabase:', insertData);
+
     const { data, error } = await supabaseAdmin
       .from('b2b_products')
-      .insert({
-        name,
-        description,
-        price,
-        unit: unit || 'dona',
-        image: image || null,
-        category: category || null,
-        stock,
-        store_id,
-      })
+      .insert(insertData)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Backend: Ошибка при создании товара в Supabase:', error);
+      throw error;
+    }
+
+    console.log('Backend: Товар создан в Supabase:', { id: data.id, image: data.image });
     res.status(201).json(data);
   } catch (error) {
+    console.error('Backend: Ошибка при создании товара:', error);
     res.status(500).json({ error: error.message });
   }
 });

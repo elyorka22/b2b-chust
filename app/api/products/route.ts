@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db-wrapper';
 import { requireAuth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const db = await getDb();
+    
     // Пытаемся получить текущего пользователя (необязательно)
     let user = null;
     try {
@@ -13,7 +15,7 @@ export async function GET(request: NextRequest) {
       // Если не авторизован, показываем все товары
     }
 
-    let products = db.products.getAll();
+    let products = await db.products.getAll();
     
     // Если это магазин, показываем только его товары
     if (user && user.role === 'magazin') {
@@ -24,9 +26,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(products);
   } catch (error: any) {
-    // В случае ошибки показываем все товары
-    const products = db.products.getAll();
-    return NextResponse.json(products);
+    console.error('Ошибка при получении товаров:', error);
+    // В случае ошибки пытаемся вернуть пустой массив
+    return NextResponse.json([], { status: 500 });
   }
 }
 
@@ -36,6 +38,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, description, price, unit, image, category, stock } = body;
 
+    console.log('Создание товара:', { name, image, hasImage: !!image, imageLength: image?.length });
+
     if (!name || !description || price === undefined || stock === undefined || !unit) {
       return NextResponse.json(
         { error: 'Необходимо указать название, описание, цену, единицу измерения и количество' },
@@ -43,20 +47,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const db = await getDb();
+
     // Если это магазин, добавляем storeId
     const storeId = user.role === 'magazin' ? user.id : undefined;
 
-    const product = db.products.create({
+    const product = await db.products.create({
       name,
       description,
       price: parseFloat(price),
       unit: unit || 'dona',
-      image,
-      category,
+      image: image || undefined,
+      category: category || undefined,
       stock: parseInt(stock),
       storeId,
     });
 
+    console.log('Товар создан:', { id: product.id, image: product.image, hasImage: !!product.image });
     return NextResponse.json(product, { status: 201 });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
