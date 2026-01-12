@@ -981,7 +981,7 @@ app.post('/api/bot/users', async (req, res) => {
       console.log('[API] Пользователь создан:', data);
       return res.json(data);
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('[API] Ошибка сохранения пользователя бота:', error);
     console.error('[API] Детали ошибки:', {
       message: error.message,
