@@ -333,17 +333,62 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
     category: product?.category || '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageMode, setImageMode] = useState<'url' | 'file'>('url');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Faqat rasm fayllari qabul qilinadi');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Fayl hajmi 5MB dan oshmasligi kerak');
+        return;
+      }
+      setSelectedFile(file);
+      setFormData({ ...formData, image: '' });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      let imageUrl = formData.image;
+
+      // Если выбран файл, загружаем его
+      if (imageMode === 'file' && selectedFile) {
+        setUploadingImage(true);
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', selectedFile);
+        
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+
+        if (!uploadResponse.ok) {
+          const error = await uploadResponse.json();
+          alert(error.error || 'Rasmni yuklashda xatolik');
+          setIsSubmitting(false);
+          setUploadingImage(false);
+          return;
+        }
+
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.url;
+        setUploadingImage(false);
+      }
+
       const url = product ? `/api/products/${product.id}` : '/api/products';
       const method = product ? 'PUT' : 'POST';
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, image: imageUrl }),
       });
       if (response.ok) {
         onSuccess();
@@ -354,6 +399,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
       alert('Mahsulotni saqlashda xatolik');
     } finally {
       setIsSubmitting(false);
+      setUploadingImage(false);
     }
   };
 
@@ -421,13 +467,78 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-900">Rasm (URL)</label>
-            <input
-              type="url"
-              value={formData.image}
-              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
-            />
+            <label className="block text-sm font-medium mb-1 text-gray-900">Rasm</label>
+            <div className="mb-2 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setImageMode('url');
+                  setSelectedFile(null);
+                }}
+                className={`px-3 py-1 text-sm rounded ${
+                  imageMode === 'url'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                URL
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setImageMode('file');
+                  setFormData({ ...formData, image: '' });
+                }}
+                className={`px-3 py-1 text-sm rounded ${
+                  imageMode === 'file'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Fayl yuklash
+              </button>
+            </div>
+            {imageMode === 'url' ? (
+              <input
+                type="url"
+                value={formData.image}
+                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
+              />
+            ) : (
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
+                />
+                {selectedFile && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600">Tanlangan: {selectedFile.name}</p>
+                    <img
+                      src={URL.createObjectURL(selectedFile)}
+                      alt="Preview"
+                      className="mt-2 max-w-full h-32 object-contain rounded"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+            {(formData.image || selectedFile) && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-600 mb-1">Ko'rinish:</p>
+                <img
+                  src={selectedFile ? URL.createObjectURL(selectedFile) : formData.image}
+                  alt="Preview"
+                  className="max-w-full h-32 object-contain rounded border border-gray-300"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-900">Kategoriya</label>
