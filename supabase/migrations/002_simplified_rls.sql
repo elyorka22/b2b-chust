@@ -30,3 +30,4 @@ CREATE POLICY "Anyone can create orders"
 -- Остальные операции (INSERT, UPDATE, DELETE) будут выполняться через Service Role Key
 -- который обходит все RLS политики
 
+

@@ -1,8 +1,8 @@
 'use client';
 
 import { Product } from '@/lib/db';
-import { addToCart } from '@/lib/cart';
-import { useState } from 'react';
+import { addToCart, updateCartItem, getCart } from '@/lib/cart';
+import { useState, useEffect } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -11,18 +11,39 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  const [showCounter, setShowCounter] = useState(false);
 
-  const handleAddToCart = () => {
-    addToCart({
-      productId: product.id,
-      productName: product.name,
-      price: product.price,
-      quantity,
-      unit: product.unit || 'dona',
-      image: product.image,
-      storeId: product.storeId, // Сохраняем storeId товара
-    });
+  // Загружаем текущее количество товара из корзины
+  useEffect(() => {
+    const cart = getCart();
+    const cartItem = cart.find(item => item.productId === product.id);
+    if (cartItem) {
+      setQuantity(cartItem.quantity);
+    }
+  }, [product.id]);
+
+  const handleQuantityChange = (change: number) => {
+    const newQty = Math.max(1, Math.min(product.stock, quantity + change));
+    setQuantity(newQty);
+    
+    const cart = getCart();
+    const cartItem = cart.find(item => item.productId === product.id);
+    
+    if (cartItem) {
+      // Товар уже в корзине - обновляем количество
+      updateCartItem(product.id, newQty);
+    } else {
+      // Товара нет в корзине - добавляем
+      addToCart({
+        productId: product.id,
+        productName: product.name,
+        price: product.price,
+        quantity: newQty,
+        unit: product.unit || 'dona',
+        image: product.image,
+        storeId: product.storeId,
+      });
+    }
+    
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -49,37 +70,25 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
         <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3">
-          {!showCounter ? (
+          <div className="flex items-center bg-white border border-gray-300 rounded-lg overflow-hidden shadow-lg">
             <button
-              onClick={() => setShowCounter(true)}
-              disabled={product.stock === 0}
-              className="w-8 h-8 md:w-9 md:h-9 bg-black text-white rounded-full shadow-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+              onClick={() => handleQuantityChange(-1)}
+              disabled={quantity <= 1 || product.stock === 0}
+              className="px-2 md:px-2.5 py-1 md:py-1.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 font-medium text-sm md:text-base"
             >
-              <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
+              −
             </button>
-          ) : (
-            <div className="flex items-center bg-white border border-gray-300 rounded-lg overflow-hidden shadow-lg">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-                className="px-2 md:px-2.5 py-1 md:py-1.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 font-medium text-sm md:text-base"
-              >
-                −
-              </button>
-              <span className="w-8 md:w-10 px-1.5 md:px-2 py-1 md:py-1.5 text-center text-xs md:text-sm font-semibold">
-                {quantity}
-              </span>
-              <button
-                onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                disabled={quantity >= product.stock}
-                className="px-2 md:px-2.5 py-1 md:py-1.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 font-medium text-sm md:text-base"
-              >
-                +
-              </button>
-            </div>
-          )}
+            <span className="w-8 md:w-10 px-1.5 md:px-2 py-1 md:py-1.5 text-center text-xs md:text-sm font-semibold">
+              {quantity}
+            </span>
+            <button
+              onClick={() => handleQuantityChange(1)}
+              disabled={quantity >= product.stock || product.stock === 0}
+              className="px-2 md:px-2.5 py-1 md:py-1.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 font-medium text-sm md:text-base"
+            >
+              +
+            </button>
+          </div>
         </div>
       </div>
       <div className="p-3 md:p-5">
@@ -89,24 +98,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         <p className="text-gray-600 text-xs md:text-sm mb-2 md:mb-4 line-clamp-2 min-h-[2rem] md:min-h-[2.5rem]">
           {product.description}
         </p>
-        <div className="mb-2 md:mb-4 pb-2 md:pb-4 border-b border-gray-100">
+        <div className="mb-2 md:mb-4">
           <span className="text-lg md:text-2xl font-bold text-black">
             {product.price.toLocaleString()} so'm/{product.unit || 'dona'}
           </span>
         </div>
-        <button
-          onClick={handleAddToCart}
-          disabled={product.stock === 0 || added}
-          className={`w-full px-3 md:px-4 py-2 md:py-2.5 rounded-lg text-sm md:text-base font-semibold transition-all duration-200 ${
-            product.stock === 0
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : added
-              ? 'bg-emerald-500 text-white shadow-md'
-              : 'bg-black text-white hover:bg-gray-800 hover:shadow-lg active:scale-95'
-          }`}
-        >
-          {added ? '✓ Qo\'shildi!' : product.stock === 0 ? 'Mavjud emas' : 'Savatga qo\'shish'}
-        </button>
       </div>
     </div>
   );

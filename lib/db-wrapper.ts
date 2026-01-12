@@ -60,3 +60,4 @@ export const db = useSupabase
   ? ({} as Database) // В production будет использоваться getDb()
   : require('./db').db;
 
+

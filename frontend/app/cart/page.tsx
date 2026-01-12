@@ -111,40 +111,40 @@ export default function CartPage() {
                 <h2 className="text-xl font-semibold mb-4">Savatdagi mahsulotlar</h2>
                 <div className="space-y-4">
                   {cart.map((item) => (
-                    <div key={item.productId} className="flex items-center gap-4 border-b pb-4">
+                    <div key={item.productId} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 border-b pb-4">
                       {item.image && (
                         <img
                           src={item.image}
                           alt={item.productName}
-                          className="w-20 h-20 object-cover rounded"
+                          className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded flex-shrink-0"
                         />
                       )}
-                      <div className="flex-1">
-                        <h3 className="font-medium">{item.productName}</h3>
-                        <p className="text-gray-600">{item.price.toLocaleString()} so'm/{item.unit || 'dona'}</p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm sm:text-base break-words">{item.productName}</h3>
+                        <p className="text-gray-600 text-xs sm:text-sm">{item.price.toLocaleString()} so'm/{item.unit || 'dona'}</p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         <button
                           onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                          className="w-8 h-8 bg-gray-200 rounded hover:bg-gray-300"
+                          className="w-8 h-8 bg-gray-200 rounded hover:bg-gray-300 text-sm sm:text-base"
                         >
                           -
                         </button>
-                        <span className="w-12 text-center">{item.quantity}</span>
+                        <span className="w-10 sm:w-12 text-center text-sm sm:text-base">{item.quantity}</span>
                         <button
                           onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                          className="w-8 h-8 bg-gray-200 rounded hover:bg-gray-300"
+                          className="w-8 h-8 bg-gray-200 rounded hover:bg-gray-300 text-sm sm:text-base"
                         >
                           +
                         </button>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold">
+                      <div className="text-right sm:text-right flex-shrink-0 w-full sm:w-auto flex sm:block justify-between sm:justify-end items-center">
+                        <p className="font-semibold text-sm sm:text-base">
                           {(item.price * item.quantity).toLocaleString()} so'm
                         </p>
                         <button
                           onClick={() => handleRemove(item.productId)}
-                          className="text-red-500 text-sm hover:text-red-700"
+                          className="text-red-500 text-xs sm:text-sm hover:text-red-700 ml-2 sm:ml-0 sm:block"
                         >
                           O'chirish
                         </button>

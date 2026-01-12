@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,29 +29,78 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     // Создаем уникальное имя файла
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
     const extension = file.name.split('.').pop() || 'jpg';
     const filename = `${timestamp}-${randomString}.${extension}`;
+    const filePath = `products/${filename}`;
 
-    // Создаем папку uploads если её нет
-    const uploadsDir = join(process.cwd(), 'public', 'uploads');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
+    // Конвертируем File в ArrayBuffer, затем в Buffer
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    // Загружаем файл в Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+      .from('product-images')
+      .upload(filePath, buffer, {
+        contentType: file.type,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error('Ошибка при загрузке в Supabase Storage:', uploadError);
+      
+      // Если bucket не существует, пытаемся создать его
+      if (uploadError.message?.includes('Bucket not found')) {
+        const { error: createError } = await supabaseAdmin.storage.createBucket('product-images', {
+          public: true,
+          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+        });
+
+        if (createError) {
+          console.error('Ошибка при создании bucket:', createError);
+          return NextResponse.json(
+            { error: 'Не удалось создать хранилище для изображений. Обратитесь к администратору.' },
+            { status: 500 }
+          );
+        }
+
+        // Повторная попытка загрузки после создания bucket
+        const { data: retryData, error: retryError } = await supabaseAdmin.storage
+          .from('product-images')
+          .upload(filePath, buffer, {
+            contentType: file.type,
+            upsert: false,
+          });
+
+        if (retryError) {
+          return NextResponse.json(
+            { error: retryError.message || 'Ошибка при загрузке файла' },
+            { status: 500 }
+          );
+        }
+
+        // Получаем публичный URL
+        const { data: urlData } = supabaseAdmin.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        return NextResponse.json({ url: urlData.publicUrl }, { status: 200 });
+      }
+
+      return NextResponse.json(
+        { error: uploadError.message || 'Ошибка при загрузке файла' },
+        { status: 500 }
+      );
     }
 
-    // Сохраняем файл
-    const filepath = join(uploadsDir, filename);
-    await writeFile(filepath, buffer);
+    // Получаем публичный URL загруженного файла
+    const { data: urlData } = supabaseAdmin.storage
+      .from('product-images')
+      .getPublicUrl(filePath);
 
-    // Возвращаем URL файла
-    const url = `/uploads/${filename}`;
-
-    return NextResponse.json({ url }, { status: 200 });
+    return NextResponse.json({ url: urlData.publicUrl }, { status: 200 });
   } catch (error: any) {
     console.error('Ошибка при загрузке файла:', error);
     return NextResponse.json(

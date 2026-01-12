@@ -123,3 +123,4 @@ npm run dev
 - Frontend URL нужен для Bot (Web App кнопки)
 - CORS настроен в Backend для работы с Frontend
 
+

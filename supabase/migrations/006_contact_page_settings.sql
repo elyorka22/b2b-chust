@@ -12,3 +12,4 @@ VALUES
   ('contact_page_how_it_works', 'Biz bilan bog''laning va sotuvchi sifatida ro''yxatdan o''tish so''rovingizni yuboring|Biz sizga foydalanuvchi nomi va parol yaratamiz|Yaratilgan ma''lumotlar bilan tizimga kirishingiz mumkin|O''z mahsulotlaringizni qo''shish va buyurtmalarni boshqarishni boshlashingiz mumkin')
 ON CONFLICT (key) DO NOTHING;
 
+
