@@ -5,15 +5,6 @@ import { existsSync } from 'fs';
 
 export async function POST(request: NextRequest) {
   try {
-    // Проверяем наличие переменных окружения
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('Supabase переменные окружения не настроены');
-      return NextResponse.json(
-        { error: 'Хранилище изображений не настроено. Обратитесь к администратору.' },
-        { status: 500 }
-      );
-    }
-
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
