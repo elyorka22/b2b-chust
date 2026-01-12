@@ -491,6 +491,16 @@ export default function SuperAdminDashboard() {
               }}
             />
           )}
+
+          {showWelcomeMessageForm && (
+            <WelcomeMessageForm
+              onClose={() => setShowWelcomeMessageForm(false)}
+              onSuccess={() => {
+                setShowWelcomeMessageForm(false);
+                alert('Welcome xabar saqlandi!');
+              }}
+            />
+          )}
         </div>
       )}
 
@@ -1109,6 +1119,106 @@ function ChangePasswordForm({ userId, onClose, onSuccess }: { userId: string; on
               type="submit"
               disabled={isSubmitting}
               className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:bg-gray-400 shadow-md hover:shadow-lg transition-all"
+            >
+              {isSubmitting ? 'Saqlanmoqda...' : 'Saqlash'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function WelcomeMessageForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    botSettingsApi.get('welcome_message')
+      .then(data => {
+        if (data?.value) {
+          setMessage(data.value);
+        } else {
+          setMessage('Salom, {name}! 👋\n\nB2B Chust do\'koniga xush kelibsiz!');
+        }
+      })
+      .catch(error => {
+        console.error('Ошибка загрузки welcome message:', error);
+        setMessage('Salom, {name}! 👋\n\nB2B Chust do\'koniga xush kelibsiz!');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!message.trim()) {
+      setError('Xabar matni kiritilishi shart');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await botSettingsApi.update('welcome_message', message);
+      onSuccess();
+    } catch (error: any) {
+      setError(error.response?.data?.error || 'Xabarni saqlashda xatolik');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <p className="text-center">Yuklanmoqda...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-xl font-bold mb-4">Welcome xabar sozlash</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Xabar matni *</label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              required
+              rows={6}
+              placeholder="Salom, {name}! 👋&#10;&#10;B2B Chust do'koniga xush kelibsiz!"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {`{name}`} - foydalanuvchi ismi bilan almashtiriladi
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+            >
+              Bekor qilish
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:bg-gray-400 shadow-md hover:shadow-lg transition-all"
             >
               {isSubmitting ? 'Saqlanmoqda...' : 'Saqlash'}
             </button>

@@ -9,7 +9,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(0);
   const [added, setAdded] = useState(false);
 
   // Загружаем текущее количество товара из корзины
@@ -18,6 +18,8 @@ export default function ProductCard({ product }: ProductCardProps) {
     const cartItem = cart.find(item => item.productId === product.id);
     if (cartItem) {
       setQuantity(cartItem.quantity);
+    } else {
+      setQuantity(0);
     }
   }, [product.id]);
 
@@ -46,6 +48,11 @@ export default function ProductCard({ product }: ProductCardProps) {
     
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleAddClick = () => {
+    // При нажатии на плюсик добавляем товар с количеством 1
+    handleQuantityChange(1);
   };
 
   return (
@@ -95,25 +102,45 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
         <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3">
-          <div className="flex items-center bg-white border border-gray-300 rounded-lg overflow-hidden shadow-lg">
+          {quantity === 0 ? (
+            // Если товара нет в корзине - показываем только кнопку с плюсиком
             <button
-              onClick={() => handleQuantityChange(-1)}
-              disabled={quantity <= 1 || product.stock === 0}
-              className="px-2 md:px-2.5 py-1 md:py-1.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 font-medium text-sm md:text-base"
+              onClick={handleAddClick}
+              disabled={product.stock === 0}
+              className="bg-white border border-gray-300 rounded-lg px-3 md:px-4 py-2 md:py-2.5 shadow-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              −
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-5 w-5 md:h-6 md:w-6 text-gray-700" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
             </button>
-            <span className="w-8 md:w-10 px-1.5 md:px-2 py-1 md:py-1.5 text-center text-xs md:text-sm font-semibold">
-              {quantity}
-            </span>
-            <button
-              onClick={() => handleQuantityChange(1)}
-              disabled={quantity >= product.stock || product.stock === 0}
-              className="px-2 md:px-2.5 py-1 md:py-1.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 font-medium text-sm md:text-base"
-            >
-              +
-            </button>
-          </div>
+          ) : (
+            // Если товар в корзине - показываем счетчик
+            <div className="flex items-center bg-white border border-gray-300 rounded-lg overflow-hidden shadow-lg">
+              <button
+                onClick={() => handleQuantityChange(-1)}
+                disabled={quantity <= 1 || product.stock === 0}
+                className="px-2 md:px-2.5 py-1 md:py-1.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 font-medium text-sm md:text-base"
+              >
+                −
+              </button>
+              <span className="w-8 md:w-10 px-1.5 md:px-2 py-1 md:py-1.5 text-center text-xs md:text-sm font-semibold">
+                {quantity}
+              </span>
+              <button
+                onClick={() => handleQuantityChange(1)}
+                disabled={quantity >= product.stock || product.stock === 0}
+                className="px-2 md:px-2.5 py-1 md:py-1.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 font-medium text-sm md:text-base"
+              >
+                +
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className="p-3 md:p-5">

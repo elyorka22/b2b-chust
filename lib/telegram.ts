@@ -101,14 +101,61 @@ export async function getBotInfo(): Promise<any> {
 
 // Получение статистики бота (требует хранения данных о пользователях)
 // Для полной статистики нужно хранить данные о сообщениях в БД
-export async function getBotStats(): Promise<BotStats> {
-  // Базовая статистика - можно расширить, сохраняя данные в БД
-  return {
-    totalUsers: 0,
-    totalMessages: 0,
-    activeUsers: 0,
-    totalChats: 0,
-  };
+export async function getBotStats(supabaseAdmin?: any): Promise<BotStats> {
+  // Базовая статистика - собираем данные из БД
+  if (!supabaseAdmin) {
+    return {
+      totalUsers: 0,
+      totalMessages: 0,
+      activeUsers: 0,
+      totalChats: 0,
+    };
+  }
+
+  try {
+    // Получаем количество пользователей с telegram_chat_id
+    const { data: users, error: usersError } = await supabaseAdmin
+      .from('b2b_users')
+      .select('telegram_chat_id, updated_at')
+      .not('telegram_chat_id', 'is', null);
+
+    if (usersError) {
+      console.error('Ошибка получения пользователей для статистики:', usersError);
+      return {
+        totalUsers: 0,
+        totalMessages: 0,
+        activeUsers: 0,
+        totalChats: 0,
+      };
+    }
+
+    const totalUsers = users?.length || 0;
+    const uniqueChats = new Set(users?.map((u: any) => u.telegram_chat_id).filter(Boolean)).size;
+    
+    // Активные пользователи - те, кто обновлялся за последние 7 дней
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const activeUsers = users?.filter((u: any) => {
+      if (!u.updated_at) return false;
+      const updatedAt = new Date(u.updated_at);
+      return updatedAt >= sevenDaysAgo;
+    }).length || 0;
+
+    return {
+      totalUsers,
+      totalMessages: 0, // Сообщения не сохраняются в БД
+      activeUsers,
+      totalChats: uniqueChats,
+    };
+  } catch (error) {
+    console.error('Ошибка получения статистики бота:', error);
+    return {
+      totalUsers: 0,
+      totalMessages: 0,
+      activeUsers: 0,
+      totalChats: 0,
+    };
+  }
 }
 
 // Получение количества подписчиков (для каналов/групп)

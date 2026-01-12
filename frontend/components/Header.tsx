@@ -48,8 +48,8 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold text-black">
           </Link>
-          <nav className="flex items-center gap-6">
-            <Link href="/cart" className="relative text-gray-700 hover:text-black transition-colors">
+          <nav className="flex items-center justify-between w-full max-w-2xl mx-auto">
+            <Link href="/cart" className="relative text-gray-700 hover:text-black transition-colors flex-1 text-center">
               Savat
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -57,53 +57,48 @@ export default function Header() {
                 </span>
               )}
             </Link>
+            {!isAdmin && (
+              <Link 
+                href="/contact" 
+                className="text-gray-700 hover:text-black transition-colors flex-1 text-center"
+              >
+                Sotuvchi bo'lish
+              </Link>
+            )}
             {isAdmin && (
-              <>
-                <Link href="/admin" className="text-gray-700 hover:text-black transition-colors">
-                  Admin panel
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-700 hover:text-black transition-colors"
-                >
-                  Chiqish
-                </button>
-              </>
+              <Link 
+                href="/admin" 
+                className="text-gray-700 hover:text-black transition-colors flex-1 text-center"
+              >
+                Admin panel
+              </Link>
             )}
             {!isAdmin && !isCustomer && (
-              <>
-                <Link 
-                  href="/contact" 
-                  className="text-gray-700 hover:text-black transition-colors"
-                >
-                  Sotuvchi bo'lish
-                </Link>
-                <Link 
-                  href="/login" 
-                  className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all shadow-md hover:shadow-lg"
-                >
-                  Kirish
-                </Link>
-              </>
+              <Link 
+                href="/login" 
+                className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all shadow-md hover:shadow-lg flex-1 text-center"
+              >
+                Kirish
+              </Link>
             )}
             {!isAdmin && isCustomer && (
-              <div className="flex items-center gap-4">
-                <span className="text-gray-700">Salom, {customerName}</span>
+              <div className="flex items-center gap-2 flex-1 justify-center">
+                <span className="text-gray-700 text-sm">Salom, {customerName}</span>
                 <button
                   onClick={handleLogout}
-                  className="text-gray-700 hover:text-black transition-colors"
+                  className="text-gray-700 hover:text-black transition-colors text-sm"
                 >
                   Chiqish
                 </button>
               </div>
             )}
             {isAdmin && (
-              <Link 
-                href="/admin" 
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
+              <button
+                onClick={handleLogout}
+                className="text-gray-700 hover:text-black transition-colors flex-1 text-center"
               >
-                Admin panel
-              </Link>
+                Chiqish
+              </button>
             )}
           </nav>
         </div>

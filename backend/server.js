@@ -867,7 +867,7 @@ app.get('/api/telegram/stats', requireAuth, async (req, res) => {
 
     const { getBotInfo, getBotStats } = await import('./api/telegram.js');
     const botInfo = await getBotInfo();
-    const stats = await getBotStats();
+    const stats = await getBotStats(supabaseAdmin);
 
     res.json({ botInfo, stats });
   } catch (error) {

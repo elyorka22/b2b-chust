@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { getBotInfo, getBotStats } from '@/lib/telegram';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET() {
   try {
     await requireAuth('super-admin');
     
     const botInfo = await getBotInfo();
-    const stats = await getBotStats();
+    const stats = await getBotStats(supabaseAdmin);
 
     return NextResponse.json({
       botInfo,
