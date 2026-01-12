@@ -686,13 +686,19 @@ app.get('/api/bot/settings/:key', async (req, res) => {
       .eq('key', key)
       .single();
 
-    if (error && error.code !== 'PGRST116') throw error;
+    if (error && error.code !== 'PGRST116') {
+      // Если это не ошибка "не найдено", выбрасываем ошибку
+      throw error;
+    }
+    
+    // Если настройка не найдена, возвращаем null вместо 404
     if (!data) {
-      return res.status(404).json({ error: 'Setting not found' });
+      return res.json({ key, value: null });
     }
 
     res.json({ key: data.key, value: data.value });
   } catch (error) {
+    console.error('Ошибка получения настройки бота:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -714,17 +720,27 @@ app.put('/api/bot/settings/:key', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Value is required' });
     }
 
+    // Используем upsert с указанием конфликтного ключа
     const { data, error } = await supabaseAdmin
       .from('b2b_bot_settings')
-      .upsert({
-        key,
-        value,
-        updated_at: new Date().toISOString(),
-      })
+      .upsert(
+        {
+          key,
+          value,
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: 'key',
+        }
+      )
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Ошибка сохранения настройки бота:', error);
+      throw error;
+    }
+    
     res.json({ key: data.key, value: data.value });
   } catch (error) {
     res.status(500).json({ error: error.message });

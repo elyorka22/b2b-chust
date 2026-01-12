@@ -1138,14 +1138,16 @@ function WelcomeMessageForm({ onClose, onSuccess }: { onClose: () => void; onSuc
   useEffect(() => {
     botSettingsApi.get('welcome_message')
       .then(data => {
-        if (data?.value) {
+        if (data && data.value !== null && data.value !== undefined) {
           setMessage(data.value);
         } else {
+          // Если настройка не найдена, используем дефолтное значение
           setMessage('Salom, {name}! 👋\n\nB2B Chust do\'koniga xush kelibsiz!');
         }
       })
       .catch(error => {
         console.error('Ошибка загрузки welcome message:', error);
+        // При ошибке используем дефолтное значение
         setMessage('Salom, {name}! 👋\n\nB2B Chust do\'koniga xush kelibsiz!');
       })
       .finally(() => {
