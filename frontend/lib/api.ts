@@ -52,14 +52,20 @@ export const usersApi = {
 };
 
 // Stats API
-export const statsApi = {
+export const statsApi: {
+  get: () => Promise<any>;
+  getSales: () => Promise<any>;
+} = {
   get: () => api.get('/api/stats').then(res => res.data),
+  getSales: () => api.get('/api/stats/sales').then(res => res.data),
 };
 
 // Telegram API
 export const telegramApi = {
   send: (chatId: number, message: string, webAppUrl?: string) =>
     api.post('/api/telegram/send', { chatId, message, webAppUrl }).then(res => res.data),
+  sendMass: (message: string, webAppUrl?: string) =>
+    api.post('/api/telegram/send-mass', { message, webAppUrl }).then(res => res.data),
   getStats: () => api.get('/api/telegram/stats').then(res => res.data),
 };
 
