@@ -144,7 +144,7 @@ export default function SuperAdminDashboard() {
       <div className="mb-6 flex gap-2 border-b">
         <button
           onClick={() => setActiveTab('products')}
-          className={`px-4 py-2 transition-colors ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-700 hover:text-indigo-600'}`}
+          className={`px-4 py-2 transition-colors font-medium ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
         >
           Mahsulotlar
         </button>
@@ -215,11 +215,11 @@ export default function SuperAdminDashboard() {
               {products.map((product) => (
                 <div key={product.id} className="bg-white rounded-lg shadow-md p-4">
                   <h3 className="text-lg font-semibold mb-2 text-gray-900">{product.name}</h3>
-                  <p className="text-gray-700 text-sm mb-2">{product.description}</p>
+                  <p className="text-gray-800 text-sm mb-2">{product.description}</p>
                   <p className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
                     {product.price.toLocaleString()} so'm/{product.unit || 'dona'}
                   </p>
-                  <p className="text-sm text-gray-500 mb-4">Mavjud: {product.stock}</p>
+                  <p className="text-sm text-gray-800 font-medium mb-4">Mavjud: {product.stock}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
@@ -256,7 +256,7 @@ export default function SuperAdminDashboard() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">Buyurtma #{order.id}</h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-800">
                         {new Date(order.createdAt).toLocaleString('uz-UZ')}
                       </p>
                     </div>
@@ -337,13 +337,13 @@ export default function SuperAdminDashboard() {
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{user.username}</h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-800 font-medium">
                         Rol: {user.role === 'super-admin' ? 'Super-admin' : 'Magazin'}
                       </p>
                       {user.storeName && (
-                        <p className="text-sm text-gray-600">Magazin: {user.storeName}</p>
+                        <p className="text-sm text-gray-800 font-medium">Magazin: {user.storeName}</p>
                       )}
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-700 mt-1">
                         Yaratilgan: {new Date(user.createdAt).toLocaleString('uz-UZ')}
                       </p>
                     </div>
@@ -387,23 +387,23 @@ export default function SuperAdminDashboard() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-gray-700 mb-2">Jami buyurtmalar</h3>
-                  <p className="text-3xl font-bold">{stats.orders.total}</p>
+                  <h3 className="text-gray-900 font-semibold mb-2">Jami buyurtmalar</h3>
+                  <p className="text-3xl font-bold text-gray-900">{stats.orders.total}</p>
                 </div>
                 <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-gray-600 mb-2">Kutayapti</h3>
+                  <h3 className="text-gray-900 font-semibold mb-2">Kutayapti</h3>
                   <p className="text-3xl font-bold text-amber-600">{stats.orders.pending}</p>
                 </div>
                 <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-gray-600 mb-2">Daromad</h3>
+                  <h3 className="text-gray-900 font-semibold mb-2">Daromad</h3>
                   <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{stats.revenue.total.toLocaleString()} so'm</p>
                 </div>
                 <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-gray-600 mb-2">Katalogdagi mahsulotlar</h3>
-                  <p className="text-3xl font-bold">{stats.products.total}</p>
+                  <h3 className="text-gray-900 font-semibold mb-2">Katalogdagi mahsulotlar</h3>
+                  <p className="text-3xl font-bold text-gray-900">{stats.products.total}</p>
                 </div>
                 <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-gray-600 mb-2">Past qoldiq</h3>
+                  <h3 className="text-gray-900 font-semibold mb-2">Past qoldiq</h3>
                   <p className="text-3xl font-bold text-rose-600">{stats.products.lowStock}</p>
                 </div>
               </div>
@@ -425,7 +425,7 @@ export default function SuperAdminDashboard() {
                                 <span className="text-lg font-bold text-indigo-600 w-8">{index + 1}</span>
                                 <div>
                                   <p className="font-medium text-gray-900">{item.productName}</p>
-                                  <p className="text-sm text-gray-500">Miqdor: {item.weekQuantity.toLocaleString()}</p>
+                                  <p className="text-sm text-gray-700 font-medium">Miqdor: {item.weekQuantity.toLocaleString()}</p>
                                 </div>
                               </div>
                               <p className="text-sm font-semibold text-emerald-600">{item.weekRevenue.toLocaleString()} so'm</p>
@@ -433,7 +433,7 @@ export default function SuperAdminDashboard() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-gray-500 text-center py-4">Hafta davomida sotilgan mahsulotlar yo'q</p>
+                        <p className="text-gray-700 text-center py-4 font-medium">Hafta davomida sotilgan mahsulotlar yo'q</p>
                       )}
                     </div>
 
@@ -447,15 +447,15 @@ export default function SuperAdminDashboard() {
                                 <span className="text-lg font-bold text-purple-600 w-8">{index + 1}</span>
                                 <div>
                                   <p className="font-medium text-gray-900">{item.productName}</p>
-                                  <p className="text-sm text-gray-500">Daromad: {item.weekRevenue.toLocaleString()} so'm</p>
+                                  <p className="text-sm text-gray-700 font-medium">Daromad: {item.weekRevenue.toLocaleString()} so'm</p>
                                 </div>
                               </div>
-                              <p className="text-sm font-semibold text-gray-600">{item.weekQuantity.toLocaleString()} dona</p>
+                              <p className="text-sm font-semibold text-gray-900">{item.weekQuantity.toLocaleString()} dona</p>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-gray-500 text-center py-4">Hafta davomida sotilgan mahsulotlar yo'q</p>
+                        <p className="text-gray-700 text-center py-4 font-medium">Hafta davomida sotilgan mahsulotlar yo'q</p>
                       )}
                     </div>
                   </div>
@@ -480,7 +480,7 @@ export default function SuperAdminDashboard() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-gray-500 text-center py-4">Oy davomida sotilgan mahsulotlar yo'q</p>
+                        <p className="text-gray-700 text-center py-4 font-medium">Oy davomida sotilgan mahsulotlar yo'q</p>
                       )}
                     </div>
 
@@ -494,15 +494,15 @@ export default function SuperAdminDashboard() {
                                 <span className="text-lg font-bold text-teal-600 w-8">{index + 1}</span>
                                 <div>
                                   <p className="font-medium text-gray-900">{item.productName}</p>
-                                  <p className="text-sm text-gray-500">Daromad: {item.monthRevenue.toLocaleString()} so'm</p>
+                                  <p className="text-sm text-gray-700 font-medium">Daromad: {item.monthRevenue.toLocaleString()} so'm</p>
                                 </div>
                               </div>
-                              <p className="text-sm font-semibold text-gray-600">{item.monthQuantity.toLocaleString()} dona</p>
+                              <p className="text-sm font-semibold text-gray-900">{item.monthQuantity.toLocaleString()} dona</p>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-gray-500 text-center py-4">Oy davomida sotilgan mahsulotlar yo'q</p>
+                        <p className="text-gray-700 text-center py-4 font-medium">Oy davomida sotilgan mahsulotlar yo'q</p>
                       )}
                     </div>
                   </div>
@@ -544,22 +544,22 @@ export default function SuperAdminDashboard() {
                   <h3 className="text-xl font-semibold mb-4">Bot ma'lumotlari</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-gray-700">Bot nomi:</p>
-                      <p className="text-lg font-medium">{telegramStats.botInfo.first_name}</p>
+                      <p className="text-gray-900 font-semibold">Bot nomi:</p>
+                      <p className="text-lg font-bold text-gray-900">{telegramStats.botInfo.first_name}</p>
                     </div>
                     {telegramStats.botInfo.username && (
                       <div>
-                        <p className="text-gray-600">Username:</p>
-                        <p className="text-lg font-medium">@{telegramStats.botInfo.username}</p>
+                        <p className="text-gray-900 font-semibold">Username:</p>
+                        <p className="text-lg font-bold text-gray-900">@{telegramStats.botInfo.username}</p>
                       </div>
                     )}
                     <div>
-                      <p className="text-gray-600">Bot ID:</p>
-                      <p className="text-lg font-medium">{telegramStats.botInfo.id}</p>
+                      <p className="text-gray-900 font-semibold">Bot ID:</p>
+                      <p className="text-lg font-bold text-gray-900">{telegramStats.botInfo.id}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Holati:</p>
-                      <p className="text-lg font-medium text-green-600">Faol</p>
+                      <p className="text-gray-900 font-semibold">Holati:</p>
+                      <p className="text-lg font-bold text-green-600">Faol</p>
                     </div>
                   </div>
                 </div>
@@ -569,19 +569,19 @@ export default function SuperAdminDashboard() {
                 <h3 className="text-xl font-semibold mb-4">Statistika</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
-                    <p className="text-gray-600 text-sm mb-1">Jami foydalanuvchilar</p>
+                    <p className="text-gray-900 text-sm mb-1 font-semibold">Jami foydalanuvchilar</p>
                     <p className="text-2xl font-bold text-blue-600">{telegramStats.stats?.totalUsers || 0}</p>
                   </div>
                   <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
-                    <p className="text-gray-600 text-sm mb-1">Jami xabarlar</p>
+                    <p className="text-gray-900 text-sm mb-1 font-semibold">Jami xabarlar</p>
                     <p className="text-2xl font-bold text-green-600">{telegramStats.stats?.totalMessages || 0}</p>
                   </div>
                   <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
-                    <p className="text-gray-600 text-sm mb-1">Faol foydalanuvchilar</p>
+                    <p className="text-gray-900 text-sm mb-1 font-semibold">Faol foydalanuvchilar</p>
                     <p className="text-2xl font-bold text-purple-600">{telegramStats.stats?.activeUsers || 0}</p>
                   </div>
                   <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
-                    <p className="text-gray-600 text-sm mb-1">Jami chatlar</p>
+                    <p className="text-gray-900 text-sm mb-1 font-semibold">Jami chatlar</p>
                     <p className="text-2xl font-bold text-orange-600">{telegramStats.stats?.totalChats || 0}</p>
                   </div>
                 </div>
@@ -597,7 +597,7 @@ export default function SuperAdminDashboard() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-500">Telegram bot statistikasi yuklanmoqda...</p>
+              <p className="text-gray-800 font-medium">Telegram bot statistikasi yuklanmoqda...</p>
             </div>
           )}
 
@@ -634,7 +634,7 @@ export default function SuperAdminDashboard() {
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h3 className="text-xl font-semibold">Sotuvchi bo'lish sahifasi</h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-800 mt-1 font-medium">
                     Sotuvchilar uchun kontakt sahifasining ma'lumotlarini tahrirlash
                   </p>
                 </div>
@@ -848,7 +848,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
                 className={`px-3 py-1 text-sm rounded ${
                   imageMode === 'url'
                     ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-gray-200 text-gray-900 hover:bg-gray-300 font-medium'
                 }`}
               >
                 URL
@@ -862,7 +862,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
                 className={`px-3 py-1 text-sm rounded ${
                   imageMode === 'file'
                     ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-gray-200 text-gray-900 hover:bg-gray-300 font-medium'
                 }`}
               >
                 Fayl yuklash
@@ -886,7 +886,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
                 />
                 {selectedFile && (
                   <div className="mt-2">
-                    <p className="text-sm text-gray-600">Tanlangan: {selectedFile.name}</p>
+                    <p className="text-sm text-gray-800 font-medium">Tanlangan: {selectedFile.name}</p>
                     <img
                       src={URL.createObjectURL(selectedFile)}
                       alt="Preview"
@@ -898,7 +898,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
             )}
             {(formData.image || selectedFile) && (
               <div className="mt-2">
-                <p className="text-sm text-gray-600 mb-1">Ko'rinish:</p>
+                <p className="text-sm text-gray-900 mb-1 font-semibold">Ko'rinish:</p>
                 <img
                   src={selectedFile ? URL.createObjectURL(selectedFile) : formData.image}
                   alt="Preview"
@@ -1111,7 +1111,7 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
                 className={`flex-1 px-4 py-2 rounded-lg transition-all ${
                   sendMode === 'single'
                     ? 'bg-indigo-600 text-white shadow-md'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-gray-200 text-gray-900 hover:bg-gray-300 font-medium'
                 }`}
               >
                 Bitta foydalanuvchiga
@@ -1126,7 +1126,7 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
                 className={`flex-1 px-4 py-2 rounded-lg transition-all ${
                   sendMode === 'mass'
                     ? 'bg-indigo-600 text-white shadow-md'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-gray-200 text-gray-900 hover:bg-gray-300 font-medium'
                 }`}
               >
                 Barcha foydalanuvchilarga
@@ -1146,7 +1146,7 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
                 placeholder="123456789"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-700 mt-1 font-medium">
                 Foydalanuvchi yoki guruh ID raqami
               </p>
             </div>
@@ -1408,7 +1408,7 @@ function WelcomeMessageForm({ onClose, onSuccess }: { onClose: () => void; onSuc
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+              className="flex-1 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-all font-medium"
             >
               Bekor qilish
             </button>

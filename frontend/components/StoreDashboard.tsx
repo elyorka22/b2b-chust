@@ -111,7 +111,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
     <div>
       <h1 className="text-3xl font-bold mb-2">Magazin paneli</h1>
       {storeName && (
-        <p className="text-gray-600 mb-6">Magazin: {storeName}</p>
+        <p className="text-gray-900 mb-6 font-semibold">Magazin: {storeName}</p>
       )}
 
       {/* Telegram Chat ID настройка */}
@@ -203,11 +203,11 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
               {products.map((product) => (
                 <div key={product.id} className="bg-white rounded-lg shadow-md p-4">
                   <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-                  <p className="text-gray-600 text-sm mb-2">{product.description}</p>
+                  <p className="text-gray-800 text-sm mb-2">{product.description}</p>
                   <p className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
                     {product.price.toLocaleString()} so'm/{product.unit || 'dona'}
                   </p>
-                  <p className="text-sm text-gray-500 mb-4">
+                  <p className="text-sm text-gray-800 font-medium mb-4">
                     Mavjud: {product.stock}
                   </p>
                   <div className="flex gap-2">
@@ -246,7 +246,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">Buyurtma #{order.id}</h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-800">
                         {new Date(order.createdAt).toLocaleString('uz-UZ')}
                       </p>
                     </div>
@@ -293,23 +293,23 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
           ) : stats ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Jami buyurtmalar</h3>
-                <p className="text-3xl font-bold">{stats.orders.total}</p>
+                <h3 className="text-gray-900 font-semibold mb-2">Jami buyurtmalar</h3>
+                <p className="text-3xl font-bold text-gray-900">{stats.orders.total}</p>
               </div>
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Kutayapti</h3>
+                <h3 className="text-gray-900 font-semibold mb-2">Kutayapti</h3>
                 <p className="text-3xl font-bold text-amber-600">{stats.orders.pending}</p>
               </div>
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Daromad</h3>
+                <h3 className="text-gray-900 font-semibold mb-2">Daromad</h3>
                 <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{stats.revenue.total.toLocaleString()} so'm</p>
               </div>
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Mahsulotlar</h3>
-                <p className="text-3xl font-bold">{stats.products.total}</p>
+                <h3 className="text-gray-900 font-semibold mb-2">Mahsulotlar</h3>
+                <p className="text-3xl font-bold text-gray-900">{stats.products.total}</p>
               </div>
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Past qoldiq</h3>
+                <h3 className="text-gray-900 font-semibold mb-2">Past qoldiq</h3>
                 <p className="text-3xl font-bold text-rose-600">{stats.products.lowStock}</p>
               </div>
             </div>
@@ -498,7 +498,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
                 className={`px-3 py-1 text-sm rounded ${
                   imageMode === 'url'
                     ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-gray-200 text-gray-900 hover:bg-gray-300 font-medium'
                 }`}
               >
                 URL
@@ -512,7 +512,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
                 className={`px-3 py-1 text-sm rounded ${
                   imageMode === 'file'
                     ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-gray-200 text-gray-900 hover:bg-gray-300 font-medium'
                 }`}
               >
                 Fayl yuklash
@@ -536,7 +536,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
                 />
                 {selectedFile && (
                   <div className="mt-2">
-                    <p className="text-sm text-gray-600">Tanlangan: {selectedFile.name}</p>
+                    <p className="text-sm text-gray-800 font-medium">Tanlangan: {selectedFile.name}</p>
                     <img
                       src={URL.createObjectURL(selectedFile)}
                       alt="Preview"
@@ -548,7 +548,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
             )}
             {(formData.image || selectedFile) && (
               <div className="mt-2">
-                <p className="text-sm text-gray-600 mb-1">Ko'rinish:</p>
+                <p className="text-sm text-gray-900 mb-1 font-semibold">Ko'rinish:</p>
                 <img
                   src={selectedFile ? URL.createObjectURL(selectedFile) : formData.image}
                   alt="Preview"
@@ -636,12 +636,12 @@ function TelegramChatIdForm({ userId, currentChatId, onClose, onSuccess }: { use
               placeholder="123456789"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-700 mt-1 font-medium">
               💡 Chat ID ni olish uchun @userinfobot ga /start yuboring
             </p>
           </div>
           <div className="bg-gray-50 p-3 rounded-lg">
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-gray-800 font-medium">
               <strong>Qanday olish:</strong><br />
               1. Telegram da @userinfobot ni oching<br />
               2. /start buyrug'ini yuboring<br />

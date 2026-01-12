@@ -53,7 +53,7 @@ export default function AdminDashboard() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Admin panel</h1>
-      <p className="text-gray-600 mb-6">Buyurtmalarni ko'rish va boshqarish</p>
+      <p className="text-gray-900 mb-6 font-semibold">Buyurtmalarni ko'rish va boshqarish</p>
 
       <div className="mb-6 flex gap-2">
         <button
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
 
       {filteredOrders.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">Buyurtmalar yo'q</p>
+          <p className="text-gray-800 font-medium">Buyurtmalar yo'q</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -93,7 +93,7 @@ export default function AdminDashboard() {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-lg font-semibold">Buyurtma #{order.id}</h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-800">
                     {new Date(order.createdAt).toLocaleString('uz-UZ')}
                   </p>
                 </div>
