@@ -953,12 +953,21 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Валидация на клиенте
+    if (formData.role === 'magazin' && (!formData.storeName || formData.storeName.trim() === '')) {
+      alert('Magazin nomi kiritilishi shart!');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       await usersApi.create(formData);
       onSuccess();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Foydalanuvchi yaratishda xatolik');
+      const errorMessage = error.response?.data?.error || error.message || 'Foydalanuvchi yaratishda xatolik';
+      console.error('Ошибка создания пользователя:', error);
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
