@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
 export async function POST(request: NextRequest) {
   try {
+    // Проверяем наличие переменных окружения
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Supabase переменные окружения не настроены');
+      return NextResponse.json(
+        { error: 'Хранилище изображений не настроено. Обратитесь к администратору.' },
+        { status: 500 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -40,71 +51,87 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Загружаем файл в Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-      .from('product-images')
-      .upload(filePath, buffer, {
-        contentType: file.type,
-        upsert: false,
-      });
+    // Пытаемся загрузить в Supabase Storage, если доступен
+    let supabaseAdmin: any = null;
+    try {
+      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        const supabaseModule = await import('@/lib/supabase');
+        supabaseAdmin = supabaseModule.supabaseAdmin;
+      }
+    } catch (error) {
+      console.warn('Supabase не доступен, будет использовано локальное хранилище');
+    }
 
-    if (uploadError) {
-      console.error('Ошибка при загрузке в Supabase Storage:', uploadError);
-      
-      // Если bucket не существует, пытаемся создать его
-      if (uploadError.message?.includes('Bucket not found')) {
-        const { error: createError } = await supabaseAdmin.storage.createBucket('product-images', {
-          public: true,
-          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
-        });
-
-        if (createError) {
-          console.error('Ошибка при создании bucket:', createError);
-          return NextResponse.json(
-            { error: 'Не удалось создать хранилище для изображений. Обратитесь к администратору.' },
-            { status: 500 }
-          );
-        }
-
-        // Повторная попытка загрузки после создания bucket
-        const { data: retryData, error: retryError } = await supabaseAdmin.storage
+    if (supabaseAdmin) {
+      try {
+        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
           .from('product-images')
           .upload(filePath, buffer, {
             contentType: file.type,
             upsert: false,
           });
 
-        if (retryError) {
-          return NextResponse.json(
-            { error: retryError.message || 'Ошибка при загрузке файла' },
-            { status: 500 }
-          );
+        if (!uploadError) {
+          // Получаем публичный URL загруженного файла
+          const { data: urlData } = supabaseAdmin.storage
+            .from('product-images')
+            .getPublicUrl(filePath);
+
+          return NextResponse.json({ url: urlData.publicUrl }, { status: 200 });
         }
 
-        // Получаем публичный URL
-        const { data: urlData } = supabaseAdmin.storage
-          .from('product-images')
-          .getPublicUrl(filePath);
+        // Если bucket не существует, пытаемся создать его
+        if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('not found')) {
+          const { error: createError } = await supabaseAdmin.storage.createBucket('product-images', {
+            public: true,
+            allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+          });
 
-        return NextResponse.json({ url: urlData.publicUrl }, { status: 200 });
+          if (!createError) {
+            // Повторная попытка загрузки после создания bucket
+            const { data: retryData, error: retryError } = await supabaseAdmin.storage
+              .from('product-images')
+              .upload(filePath, buffer, {
+                contentType: file.type,
+                upsert: false,
+              });
+
+            if (!retryError) {
+              const { data: urlData } = supabaseAdmin.storage
+                .from('product-images')
+                .getPublicUrl(filePath);
+
+              return NextResponse.json({ url: urlData.publicUrl }, { status: 200 });
+            }
+          }
+        }
+
+        console.warn('Не удалось загрузить в Supabase Storage, используем локальное хранилище:', uploadError.message);
+      } catch (supabaseError: any) {
+        console.warn('Ошибка при работе с Supabase Storage, используем локальное хранилище:', supabaseError.message);
       }
-
-      return NextResponse.json(
-        { error: uploadError.message || 'Ошибка при загрузке файла' },
-        { status: 500 }
-      );
     }
 
-    // Получаем публичный URL загруженного файла
-    const { data: urlData } = supabaseAdmin.storage
-      .from('product-images')
-      .getPublicUrl(filePath);
+    // Fallback: сохраняем локально в public/uploads
+    const uploadsDir = join(process.cwd(), 'public', 'uploads');
+    if (!existsSync(uploadsDir)) {
+      await mkdir(uploadsDir, { recursive: true });
+    }
 
-    return NextResponse.json({ url: urlData.publicUrl }, { status: 200 });
+    const localFilePath = join(uploadsDir, filename);
+    await writeFile(localFilePath, buffer);
+
+    // Возвращаем URL файла
+    const url = `/uploads/${filename}`;
+    return NextResponse.json({ url }, { status: 200 });
   } catch (error: any) {
     console.error('Ошибка при загрузке файла:', error);
+    console.error('Stack trace:', error.stack);
     return NextResponse.json(
-      { error: error.message || 'Ошибка при загрузке файла' },
+      { 
+        error: error.message || 'Ошибка при загрузке файла',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     );
   }
