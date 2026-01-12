@@ -59,11 +59,22 @@ export async function POST(request: NextRequest) {
         const supabaseModule = await import('@/lib/supabase');
         supabaseAdmin = supabaseModule.supabaseAdmin;
         console.log('Supabase модуль загружен:', !!supabaseAdmin);
+        if (!supabaseAdmin) {
+          console.warn('supabaseAdmin равен null - переменные окружения могут быть неполными');
+        }
       } else {
-        console.log('Supabase переменные окружения не настроены, используем локальное хранилище');
+        console.log('Supabase переменные окружения не настроены:', {
+          hasSupabaseUrl,
+          hasServiceKey,
+          supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'установлен' : 'не установлен',
+          serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'установлен' : 'не установлен'
+        });
+        console.log('Используем локальное хранилище');
       }
-    } catch (error) {
-      console.warn('Supabase не доступен, будет использовано локальное хранилище:', error);
+    } catch (error: any) {
+      console.error('Ошибка при импорте Supabase:', error.message);
+      console.error('Stack:', error.stack);
+      console.warn('Будет использовано локальное хранилище');
     }
 
     if (supabaseAdmin) {

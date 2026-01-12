@@ -620,11 +620,15 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
       }
 
       const submitData = { ...formData, image: imageUrl };
+      console.log('Данные для отправки:', { ...submitData, image: imageUrl, hasImage: !!imageUrl });
       
       if (product) {
+        console.log('Обновление товара:', product.id);
         await productsApi.update(product.id, submitData);
       } else {
-        await productsApi.create(submitData);
+        console.log('Создание нового товара');
+        const createdProduct = await productsApi.create(submitData);
+        console.log('Товар создан:', createdProduct);
       }
       onSuccess();
     } catch (error) {

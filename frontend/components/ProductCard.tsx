@@ -53,11 +53,21 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="relative overflow-hidden bg-gray-50">
         {product.image ? (
           <img
-            src={product.image.startsWith('http') ? product.image : product.image.startsWith('/') ? product.image : `/${product.image}`}
+            src={(() => {
+              let imageUrl = product.image;
+              if (imageUrl.startsWith('http')) {
+                return imageUrl;
+              } else if (imageUrl.startsWith('/')) {
+                return imageUrl;
+              } else {
+                return `/${imageUrl}`;
+              }
+            })()}
             alt={product.name}
             className="w-full h-40 md:h-56 object-cover transition-transform duration-300 hover:scale-105"
             onError={(e) => {
               // Если изображение не загрузилось, заменяем на placeholder
+              console.error('Ошибка загрузки изображения:', product.image, 'для товара:', product.name);
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
               const parent = target.parentElement;
@@ -67,6 +77,9 @@ export default function ProductCard({ product }: ProductCardProps) {
                 placeholder.innerHTML = '<span class="text-gray-400 text-xs md:text-sm">Rasm yo\'q</span>';
                 parent.appendChild(placeholder);
               }
+            }}
+            onLoad={() => {
+              console.log('Изображение загружено успешно:', product.image, 'для товара:', product.name);
             }}
           />
         ) : (
