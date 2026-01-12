@@ -144,37 +144,37 @@ export default function SuperAdminDashboard() {
       <div className="mb-6 flex gap-2 border-b">
         <button
           onClick={() => setActiveTab('products')}
-          className={`px-4 py-2 transition-colors font-medium ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
+          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
         >
           Mahsulotlar
         </button>
         <button
           onClick={() => setActiveTab('orders')}
-          className={`px-4 py-2 transition-colors ${activeTab === 'orders' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
+          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'orders' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
         >
           Buyurtmalar
         </button>
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-4 py-2 transition-colors ${activeTab === 'users' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
+          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'users' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
         >
           Foydalanuvchilar
         </button>
         <button
           onClick={() => setActiveTab('stats')}
-          className={`px-4 py-2 transition-colors ${activeTab === 'stats' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
+          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'stats' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
         >
           Statistika
         </button>
         <button
           onClick={() => setActiveTab('telegram')}
-          className={`px-4 py-2 transition-colors ${activeTab === 'telegram' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
+          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'telegram' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
         >
           Telegram Bot
         </button>
         <button
           onClick={() => setActiveTab('settings')}
-          className={`px-4 py-2 transition-colors ${activeTab === 'settings' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
+          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'settings' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
         >
           Sozlamalar
         </button>
@@ -183,7 +183,7 @@ export default function SuperAdminDashboard() {
       {activeTab === 'products' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-gray-900">Mahsulotlarni boshqarish</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Mahsulotlarni boshqarish</h2>
             <button
               onClick={() => {
                 setEditingProduct(null);
@@ -246,7 +246,7 @@ export default function SuperAdminDashboard() {
 
       {activeTab === 'orders' && (
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Buyurtmalar</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Buyurtmalar</h2>
           {loading ? (
             <div className="text-center py-12">Yuklanmoqda...</div>
           ) : (
@@ -310,7 +310,7 @@ export default function SuperAdminDashboard() {
       {activeTab === 'users' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-gray-900">Foydalanuvchilar</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Foydalanuvchilar</h2>
             <button
               onClick={() => setShowUserForm(true)}
               className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
@@ -380,7 +380,7 @@ export default function SuperAdminDashboard() {
 
       {activeTab === 'stats' && (
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Statistika</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Statistika</h2>
           {loading ? (
             <div className="text-center py-12">Yuklanmoqda...</div>
           ) : stats ? (
@@ -411,12 +411,12 @@ export default function SuperAdminDashboard() {
               {/* Статистика продаж */}
               {salesStats && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-semibold mb-4">Eng ko'p sotilgan mahsulotlar</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Eng ko'p sotilgan mahsulotlar</h3>
                   
                   {/* За неделю */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="bg-white rounded-lg shadow-md p-6">
-                      <h4 className="text-lg font-semibold mb-4 text-indigo-600">Hafta bo'yicha (miqdor)</h4>
+                      <h4 className="text-lg font-bold mb-4 text-gray-900">Hafta bo'yicha (miqdor)</h4>
                       {salesStats.week?.byQuantity && salesStats.week.byQuantity.length > 0 ? (
                         <div className="space-y-3">
                           {salesStats.week.byQuantity.map((item: any, index: number) => (
@@ -438,7 +438,7 @@ export default function SuperAdminDashboard() {
                     </div>
 
                     <div className="bg-white rounded-lg shadow-md p-6">
-                      <h4 className="text-lg font-semibold mb-4 text-purple-600">Hafta bo'yicha (daromad)</h4>
+                      <h4 className="text-lg font-bold mb-4 text-gray-900">Hafta bo'yicha (daromad)</h4>
                       {salesStats.week?.byRevenue && salesStats.week.byRevenue.length > 0 ? (
                         <div className="space-y-3">
                           {salesStats.week.byRevenue.map((item: any, index: number) => (
@@ -463,7 +463,7 @@ export default function SuperAdminDashboard() {
                   {/* За месяц */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="bg-white rounded-lg shadow-md p-6">
-                      <h4 className="text-lg font-semibold mb-4 text-emerald-600">Oy bo'yicha (miqdor)</h4>
+                      <h4 className="text-lg font-bold mb-4 text-gray-900">Oy bo'yicha (miqdor)</h4>
                       {salesStats.month?.byQuantity && salesStats.month.byQuantity.length > 0 ? (
                         <div className="space-y-3">
                           {salesStats.month.byQuantity.map((item: any, index: number) => (
@@ -485,7 +485,7 @@ export default function SuperAdminDashboard() {
                     </div>
 
                     <div className="bg-white rounded-lg shadow-md p-6">
-                      <h4 className="text-lg font-semibold mb-4 text-teal-600">Oy bo'yicha (daromad)</h4>
+                      <h4 className="text-lg font-bold mb-4 text-gray-900">Oy bo'yicha (daromad)</h4>
                       {salesStats.month?.byRevenue && salesStats.month.byRevenue.length > 0 ? (
                         <div className="space-y-3">
                           {salesStats.month.byRevenue.map((item: any, index: number) => (
@@ -518,7 +518,7 @@ export default function SuperAdminDashboard() {
       {activeTab === 'telegram' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-gray-900">Telegram Bot boshqaruvi</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Telegram Bot boshqaruvi</h2>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowWelcomeMessageForm(true)}
@@ -541,7 +541,7 @@ export default function SuperAdminDashboard() {
             <div className="space-y-6">
               {telegramStats.botInfo && (
                 <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-xl font-semibold mb-4">Bot ma'lumotlari</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Bot ma'lumotlari</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-gray-900 font-semibold">Bot nomi:</p>
@@ -566,7 +566,7 @@ export default function SuperAdminDashboard() {
               )}
 
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-xl font-semibold mb-4">Statistika</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Statistika</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
                     <p className="text-gray-900 text-sm mb-1 font-semibold">Jami foydalanuvchilar</p>
@@ -626,14 +626,14 @@ export default function SuperAdminDashboard() {
       {activeTab === 'settings' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-gray-900">Sozlamalar</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Sozlamalar</h2>
           </div>
           
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h3 className="text-xl font-semibold">Sotuvchi bo'lish sahifasi</h3>
+                  <h3 className="text-xl font-bold text-gray-900">Sotuvchi bo'lish sahifasi</h3>
                   <p className="text-sm text-gray-800 mt-1 font-medium">
                     Sotuvchilar uchun kontakt sahifasining ma'lumotlarini tahrirlash
                   </p>

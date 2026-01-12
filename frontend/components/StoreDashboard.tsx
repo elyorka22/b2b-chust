@@ -150,19 +150,19 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
       <div className="mb-6 flex gap-2 border-b">
         <button
           onClick={() => setActiveTab('products')}
-          className={`px-4 py-2 transition-colors ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
+          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
         >
           Mahsulotlar
         </button>
         <button
           onClick={() => setActiveTab('orders')}
-          className={`px-4 py-2 transition-colors ${activeTab === 'orders' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
+          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'orders' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
         >
           Buyurtmalar
         </button>
         <button
           onClick={() => setActiveTab('stats')}
-          className={`px-4 py-2 transition-colors ${activeTab === 'stats' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
+          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'stats' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
         >
           Statistika
         </button>
@@ -171,7 +171,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
       {activeTab === 'products' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-gray-900">Mahsulotlarni boshqarish</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Mahsulotlarni boshqarish</h2>
             <button
               onClick={() => {
                 setEditingProduct(null);
@@ -236,7 +236,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
 
       {activeTab === 'orders' && (
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Buyurtmalar</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Buyurtmalar</h2>
           {loading ? (
             <div className="text-center py-12">Yuklanmoqda...</div>
           ) : (
@@ -287,7 +287,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
 
       {activeTab === 'stats' && (
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Statistika</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Statistika</h2>
           {loading ? (
             <div className="text-center py-12">Yuklanmoqda...</div>
           ) : stats ? (
