@@ -747,6 +747,66 @@ app.put('/api/bot/settings/:key', requireAuth, async (req, res) => {
   }
 });
 
+// ========== BOT USERS API ==========
+app.post('/api/bot/users', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { chatId, firstName, lastName, username } = req.body;
+
+    if (!chatId) {
+      return res.status(400).json({ error: 'chatId is required' });
+    }
+
+    // Проверяем, существует ли пользователь с таким chatId
+    const { data: existing } = await supabaseAdmin
+      .from('b2b_bot_users')
+      .select('*')
+      .eq('chat_id', chatId)
+      .single();
+
+    if (existing) {
+      // Обновляем существующего пользователя
+      const { data, error } = await supabaseAdmin
+        .from('b2b_bot_users')
+        .update({
+          first_name: firstName,
+          last_name: lastName || null,
+          username: username || null,
+          last_activity: new Date().toISOString(),
+        })
+        .eq('chat_id', chatId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return res.json(data);
+    } else {
+      // Создаем нового пользователя
+      const { data, error } = await supabaseAdmin
+        .from('b2b_bot_users')
+        .insert({
+          chat_id: chatId,
+          first_name: firstName,
+          last_name: lastName || null,
+          username: username || null,
+          last_activity: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return res.json(data);
+    }
+  } catch (error) {
+    console.error('Ошибка сохранения пользователя бота:', error);
+    // Не возвращаем ошибку, чтобы не блокировать работу бота
+    return res.status(200).json({ success: true });
+  }
+});
+
 // ========== USER PASSWORD API ==========
 app.put('/api/users/:id/password', requireAuth, async (req, res) => {
   try {

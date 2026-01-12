@@ -17,15 +17,47 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
 
 console.log('Telegram Bot запущен...');
 
+// Функция для обновления активности пользователя
+async function updateUserActivity(chatId, firstName, lastName, username) {
+  try {
+    await axios.post(`${BACKEND_URL}/api/bot/users`, {
+      chatId,
+      firstName,
+      lastName,
+      username,
+    });
+  } catch (error) {
+    // Игнорируем ошибки, чтобы не блокировать работу бота
+    console.error('Ошибка обновления активности пользователя:', error.message);
+  }
+}
+
 // Команда /start
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
   const firstName = msg.from.first_name;
 
   try {
+    // Сохраняем пользователя бота в базу данных
+    try {
+      await axios.post(`${BACKEND_URL}/api/bot/users`, {
+        chatId,
+        firstName: msg.from.first_name,
+        lastName: msg.from.last_name,
+        username: msg.from.username,
+      });
+    } catch (error) {
+      console.error('Ошибка сохранения пользователя бота:', error.message);
+    }
+
     // Получаем welcome message из настроек
     const response = await axios.get(`${BACKEND_URL}/api/bot/settings/welcome_message`);
-    const welcomeMessage = response.data?.value || `Salom, ${firstName}! 👋\n\nB2B Chust do'koniga xush kelibsiz!`;
+    let welcomeMessage = response.data?.value;
+    
+    // Если welcome message не найден или null, используем дефолтное
+    if (!welcomeMessage || welcomeMessage === null) {
+      welcomeMessage = `Salom, ${firstName}! 👋\n\nB2B Chust do'koniga xush kelibsiz!`;
+    }
     
     // Заменяем {name} на имя пользователя, если есть
     const personalizedMessage = welcomeMessage.replace(/{name}/g, firstName);
@@ -57,8 +89,17 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 // Команда /help
-bot.onText(/\/help/, (msg) => {
+bot.onText(/\/help/, async (msg) => {
   const chatId = msg.chat.id;
+  
+  // Обновляем активность пользователя
+  await updateUserActivity(
+    chatId,
+    msg.from.first_name,
+    msg.from.last_name,
+    msg.from.username
+  );
+  
   bot.sendMessage(chatId, 
     `📋 Mavjud buyruqlar:\n\n` +
     `/start - Botni boshlash\n` +
@@ -71,6 +112,14 @@ bot.onText(/\/help/, (msg) => {
 // Команда /catalog
 bot.onText(/\/catalog/, async (msg) => {
   const chatId = msg.chat.id;
+  
+  // Обновляем активность пользователя
+  await updateUserActivity(
+    chatId,
+    msg.from.first_name,
+    msg.from.last_name,
+    msg.from.username
+  );
   
   try {
     const response = await axios.get(`${BACKEND_URL}/api/products`);
@@ -114,6 +163,14 @@ bot.onText(/\/catalog/, async (msg) => {
 bot.onText(/\/stores/, async (msg) => {
   const chatId = msg.chat.id;
   
+  // Обновляем активность пользователя
+  await updateUserActivity(
+    chatId,
+    msg.from.first_name,
+    msg.from.last_name,
+    msg.from.username
+  );
+  
   try {
     // Получаем магазины через API (нужно добавить endpoint)
     bot.sendMessage(chatId, 
@@ -136,9 +193,17 @@ bot.onText(/\/stores/, async (msg) => {
 });
 
 // Обработка текстовых сообщений
-bot.on('message', (msg) => {
+bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
+
+  // Обновляем активность пользователя
+  await updateUserActivity(
+    chatId,
+    msg.from.first_name,
+    msg.from.last_name,
+    msg.from.username
+  );
 
   // Игнорируем команды
   if (text?.startsWith('/')) {

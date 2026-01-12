@@ -113,33 +113,73 @@ export async function getBotStats(supabaseAdmin?: any): Promise<BotStats> {
   }
 
   try {
-    // Получаем количество пользователей с telegram_chat_id
-    const { data: users, error: usersError } = await supabaseAdmin
-      .from('b2b_users')
-      .select('telegram_chat_id, updated_at')
-      .not('telegram_chat_id', 'is', null);
+    // Получаем пользователей бота из таблицы b2b_bot_users
+    let botUsers: any[] = [];
+    let botUsersError: any = null;
+    
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('b2b_bot_users')
+        .select('chat_id, last_activity');
+      
+      if (error) {
+        botUsersError = error;
+        console.warn('Таблица b2b_bot_users не найдена, используем b2b_users:', error.message);
+      } else {
+        botUsers = data || [];
+      }
+    } catch (error: any) {
+      console.warn('Ошибка получения пользователей бота:', error.message);
+    }
 
-    if (usersError) {
-      console.error('Ошибка получения пользователей для статистики:', usersError);
+    // Если таблица b2b_bot_users не существует, используем b2b_users
+    if (botUsers.length === 0 && botUsersError) {
+      const { data: users, error: usersError } = await supabaseAdmin
+        .from('b2b_users')
+        .select('telegram_chat_id, updated_at')
+        .not('telegram_chat_id', 'is', null);
+
+      if (usersError) {
+        console.error('Ошибка получения пользователей для статистики:', usersError);
+        return {
+          totalUsers: 0,
+          totalMessages: 0,
+          activeUsers: 0,
+          totalChats: 0,
+        };
+      }
+
+      const totalUsers = users?.length || 0;
+      const uniqueChats = new Set(users?.map((u: any) => u.telegram_chat_id).filter(Boolean)).size;
+      
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const activeUsers = users?.filter((u: any) => {
+        if (!u.updated_at) return false;
+        const updatedAt = new Date(u.updated_at);
+        return updatedAt >= sevenDaysAgo;
+      }).length || 0;
+
       return {
-        totalUsers: 0,
+        totalUsers,
         totalMessages: 0,
-        activeUsers: 0,
-        totalChats: 0,
+        activeUsers,
+        totalChats: uniqueChats,
       };
     }
 
-    const totalUsers = users?.length || 0;
-    const uniqueChats = new Set(users?.map((u: any) => u.telegram_chat_id).filter(Boolean)).size;
+    // Используем данные из b2b_bot_users
+    const totalUsers = botUsers.length;
+    const uniqueChats = new Set(botUsers.map((u: any) => u.chat_id).filter(Boolean)).size;
     
-    // Активные пользователи - те, кто обновлялся за последние 7 дней
+    // Активные пользователи - те, кто был активен за последние 7 дней
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const activeUsers = users?.filter((u: any) => {
-      if (!u.updated_at) return false;
-      const updatedAt = new Date(u.updated_at);
-      return updatedAt >= sevenDaysAgo;
-    }).length || 0;
+    const activeUsers = botUsers.filter((u: any) => {
+      if (!u.last_activity) return false;
+      const lastActivity = new Date(u.last_activity);
+      return lastActivity >= sevenDaysAgo;
+    }).length;
 
     return {
       totalUsers,
