@@ -9,16 +9,11 @@ export default function ContactPage() {
   const [contactData, setContactData] = useState({
     title: 'Sotuvchi sifatida ro\'yxatdan o\'tish',
     description: 'Sizning foydalanuvchi nomingiz yoki parolingiz tizimda topilmadi. Sotuvchi sifatida ro\'yxatdan o\'tish uchun quyidagi ma\'lumotlar bilan bog\'laning:',
-    phone: '+998 (90) 123-45-67',
-    email: 'info@b2bchust.uz',
-    telegram: '@b2bchust_support',
-    address: 'Chust shahri, O\'zbekiston',
-    howItWorks: [
-      'Biz bilan bog\'laning va sotuvchi sifatida ro\'yxatdan o\'tish so\'rovingizni yuboring',
-      'Biz sizga foydalanuvchi nomi va parol yaratamiz',
-      'Yaratilgan ma\'lumotlar bilan tizimga kirishingiz mumkin',
-      'O\'z mahsulotlaringizni qo\'shish va buyurtmalarni boshqarishni boshlashingiz mumkin',
-    ],
+    phone: '',
+    email: '',
+    telegram: '',
+    address: '',
+    howItWorks: [],
   });
   const [loading, setLoading] = useState(true);
 
@@ -29,11 +24,11 @@ export default function ContactPage() {
           setContactData({
             title: data.contact_page_title || contactData.title,
             description: data.contact_page_description || contactData.description,
-            phone: data.contact_page_phone || contactData.phone,
-            email: data.contact_page_email || contactData.email,
-            telegram: data.contact_page_telegram || contactData.telegram,
-            address: data.contact_page_address || contactData.address,
-            howItWorks: data.contact_page_how_it_works || contactData.howItWorks,
+            phone: data.contact_page_phone || '',
+            email: data.contact_page_email || '',
+            telegram: data.contact_page_telegram || '',
+            address: data.contact_page_address || '',
+            howItWorks: data.contact_page_how_it_works || [],
           });
         }
       })
@@ -76,56 +71,66 @@ export default function ContactPage() {
               <h2 className="text-xl font-semibold mb-4 text-gray-900">Bog'lanish ma'lumotlari</h2>
               
               <div className="space-y-4">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <span className="text-indigo-600 font-bold">📞</span>
+                {contactData.phone && (
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <span className="text-indigo-600 font-bold">📞</span>
+                    </div>
+                    <div className="ml-4">
+                      <p className="font-medium text-gray-900">Telefon</p>
+                      <p className="text-gray-800 font-medium">{contactData.phone}</p>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="font-medium text-gray-900">Telefon</p>
-                    <p className="text-gray-600">{contactData.phone}</p>
-                  </div>
-                </div>
+                )}
 
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <span className="text-indigo-600 font-bold">✉️</span>
+                {contactData.email && (
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <span className="text-indigo-600 font-bold">✉️</span>
+                    </div>
+                    <div className="ml-4">
+                      <p className="font-medium text-gray-900">Email</p>
+                      <p className="text-gray-800 font-medium">{contactData.email}</p>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="font-medium text-gray-900">Email</p>
-                    <p className="text-gray-600">{contactData.email}</p>
-                  </div>
-                </div>
+                )}
 
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <span className="text-indigo-600 font-bold">💬</span>
+                {contactData.telegram && (
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <span className="text-indigo-600 font-bold">💬</span>
+                    </div>
+                    <div className="ml-4">
+                      <p className="font-medium text-gray-900">Telegram</p>
+                      <p className="text-gray-800 font-medium">{contactData.telegram}</p>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="font-medium text-gray-900">Telegram</p>
-                    <p className="text-gray-600">{contactData.telegram}</p>
-                  </div>
-                </div>
+                )}
 
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <span className="text-indigo-600 font-bold">📍</span>
+                {contactData.address && (
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <span className="text-indigo-600 font-bold">📍</span>
+                    </div>
+                    <div className="ml-4">
+                      <p className="font-medium text-gray-900">Manzil</p>
+                      <p className="text-gray-800 font-medium">{contactData.address}</p>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="font-medium text-gray-900">Manzil</p>
-                    <p className="text-gray-600">{contactData.address}</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold mb-2 text-gray-900">Qanday ishlaydi?</h3>
-              <ul className="list-disc list-inside space-y-1 text-gray-600">
-                {contactData.howItWorks.map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
-              </ul>
-            </div>
+            {contactData.howItWorks && contactData.howItWorks.length > 0 && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2 text-gray-900">Qanday ishlaydi?</h3>
+                <ul className="list-disc list-inside space-y-1 text-gray-800">
+                  {contactData.howItWorks.map((item, index) => (
+                    <li key={index} className="font-medium">{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="flex gap-4">
               <Link

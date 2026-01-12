@@ -1604,7 +1604,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
                     value={item}
                     onChange={(e) => updateHowItWorksItem(index, e.target.value)}
                     placeholder={`${index + 1}-qadam`}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
                   />
                   {formData.howItWorks.length > 1 && (
                     <button
@@ -1620,7 +1620,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
               <button
                 type="button"
                 onClick={addHowItWorksItem}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm text-gray-900 font-medium"
               >
                 + Qadam qo'shish
               </button>
@@ -1630,7 +1630,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-900 font-medium"
             >
               Bekor qilish
             </button>
