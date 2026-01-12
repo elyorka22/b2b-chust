@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Product, Order } from '@/lib/db';
 import { productsApi, ordersApi, statsApi, userApi } from '@/lib/api';
-import { getCurrentUserFromToken } from '@/lib/auth';
+import { getCurrentUserFromToken, getAuthToken } from '@/lib/auth';
 
 interface StoreDashboardProps {
   storeName?: string;
@@ -383,18 +383,14 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
         setUploadingImage(false);
       }
 
-      const url = product ? `/api/products/${product.id}` : '/api/products';
-      const method = product ? 'PUT' : 'POST';
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, image: imageUrl }),
-      });
-      if (response.ok) {
-        onSuccess();
+      const submitData = { ...formData, image: imageUrl };
+      
+      if (product) {
+        await productsApi.update(product.id, submitData);
       } else {
-        alert('Mahsulotni saqlashda xatolik');
+        await productsApi.create(submitData);
       }
+      onSuccess();
     } catch (error) {
       alert('Mahsulotni saqlashda xatolik');
     } finally {

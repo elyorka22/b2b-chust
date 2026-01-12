@@ -1,10 +1,25 @@
 import axios from 'axios';
 import { API_BASE_URL } from './config';
+import { getAuthToken } from './auth';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
 });
+
+// Добавляем токен авторизации в заголовки каждого запроса
+api.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Products API
 export const productsApi = {
