@@ -11,6 +11,7 @@ export default function SuperAdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [salesStats, setSalesStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
@@ -31,6 +32,7 @@ export default function SuperAdminDashboard() {
       fetchOrders();
     } else if (activeTab === 'stats') {
       fetchStats();
+      fetchSalesStats();
     } else if (activeTab === 'telegram') {
       fetchTelegramStats();
     } else if (activeTab === 'users') {
@@ -74,17 +76,31 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  const fetchSalesStats = async () => {
+    try {
+      const data = await statsApi.getSales();
+      setSalesStats(data);
+    } catch (error) {
+      console.error('Ошибка загрузки статистики продаж:', error);
+    }
+  };
+
   const fetchTelegramStats = async () => {
     setLoading(true);
     try {
+      console.log('[ADMIN] Загрузка статистики Telegram...');
       const [statsData, settingsData] = await Promise.all([
         telegramApi.getStats(),
         botSettingsApi.get('welcome_message').catch(() => ({ value: '' })),
       ]);
+      console.log('[ADMIN] Получена статистика:', statsData);
+      console.log('[ADMIN] Статистика.stats:', statsData?.stats);
+      console.log('[ADMIN] totalUsers:', statsData?.stats?.totalUsers);
       setTelegramStats(statsData);
       setWelcomeMessage(settingsData.value || '');
-    } catch (error) {
-      console.error('Telegram statistikani yuklashda xatolik:', error);
+    } catch (error: any) {
+      console.error('[ADMIN] Ошибка загрузки статистики Telegram:', error);
+      console.error('[ADMIN] Детали ошибки:', error.response?.data || error.message);
     } finally {
       setLoading(false);
     }
@@ -368,28 +384,131 @@ export default function SuperAdminDashboard() {
           {loading ? (
             <div className="text-center py-12">Yuklanmoqda...</div>
           ) : stats ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-700 mb-2">Jami buyurtmalar</h3>
-                <p className="text-3xl font-bold">{stats.orders.total}</p>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-gray-700 mb-2">Jami buyurtmalar</h3>
+                  <p className="text-3xl font-bold">{stats.orders.total}</p>
+                </div>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-gray-600 mb-2">Kutayapti</h3>
+                  <p className="text-3xl font-bold text-amber-600">{stats.orders.pending}</p>
+                </div>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-gray-600 mb-2">Daromad</h3>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{stats.revenue.total.toLocaleString()} so'm</p>
+                </div>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-gray-600 mb-2">Katalogdagi mahsulotlar</h3>
+                  <p className="text-3xl font-bold">{stats.products.total}</p>
+                </div>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-gray-600 mb-2">Past qoldiq</h3>
+                  <p className="text-3xl font-bold text-rose-600">{stats.products.lowStock}</p>
+                </div>
               </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Kutayapti</h3>
-                <p className="text-3xl font-bold text-amber-600">{stats.orders.pending}</p>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Daromad</h3>
-                <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{stats.revenue.total.toLocaleString()} so'm</p>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Katalogdagi mahsulotlar</h3>
-                <p className="text-3xl font-bold">{stats.products.total}</p>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Past qoldiq</h3>
-                <p className="text-3xl font-bold text-rose-600">{stats.products.lowStock}</p>
-              </div>
-            </div>
+
+              {/* Статистика продаж */}
+              {salesStats && (
+                <div className="space-y-6">
+                  <h3 className="text-xl font-semibold mb-4">Eng ko'p sotilgan mahsulotlar</h3>
+                  
+                  {/* За неделю */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h4 className="text-lg font-semibold mb-4 text-indigo-600">Hafta bo'yicha (miqdor)</h4>
+                      {salesStats.week?.byQuantity && salesStats.week.byQuantity.length > 0 ? (
+                        <div className="space-y-3">
+                          {salesStats.week.byQuantity.map((item: any, index: number) => (
+                            <div key={item.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg font-bold text-indigo-600 w-8">{index + 1}</span>
+                                <div>
+                                  <p className="font-medium text-gray-900">{item.productName}</p>
+                                  <p className="text-sm text-gray-500">Miqdor: {item.weekQuantity.toLocaleString()}</p>
+                                </div>
+                              </div>
+                              <p className="text-sm font-semibold text-emerald-600">{item.weekRevenue.toLocaleString()} so'm</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-4">Hafta davomida sotilgan mahsulotlar yo'q</p>
+                      )}
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h4 className="text-lg font-semibold mb-4 text-purple-600">Hafta bo'yicha (daromad)</h4>
+                      {salesStats.week?.byRevenue && salesStats.week.byRevenue.length > 0 ? (
+                        <div className="space-y-3">
+                          {salesStats.week.byRevenue.map((item: any, index: number) => (
+                            <div key={item.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg font-bold text-purple-600 w-8">{index + 1}</span>
+                                <div>
+                                  <p className="font-medium text-gray-900">{item.productName}</p>
+                                  <p className="text-sm text-gray-500">Daromad: {item.weekRevenue.toLocaleString()} so'm</p>
+                                </div>
+                              </div>
+                              <p className="text-sm font-semibold text-gray-600">{item.weekQuantity.toLocaleString()} dona</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-4">Hafta davomida sotilgan mahsulotlar yo'q</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* За месяц */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h4 className="text-lg font-semibold mb-4 text-emerald-600">Oy bo'yicha (miqdor)</h4>
+                      {salesStats.month?.byQuantity && salesStats.month.byQuantity.length > 0 ? (
+                        <div className="space-y-3">
+                          {salesStats.month.byQuantity.map((item: any, index: number) => (
+                            <div key={item.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg font-bold text-emerald-600 w-8">{index + 1}</span>
+                                <div>
+                                  <p className="font-medium text-gray-900">{item.productName}</p>
+                                  <p className="text-sm text-gray-500">Miqdor: {item.monthQuantity.toLocaleString()}</p>
+                                </div>
+                              </div>
+                              <p className="text-sm font-semibold text-emerald-600">{item.monthRevenue.toLocaleString()} so'm</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-4">Oy davomida sotilgan mahsulotlar yo'q</p>
+                      )}
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h4 className="text-lg font-semibold mb-4 text-teal-600">Oy bo'yicha (daromad)</h4>
+                      {salesStats.month?.byRevenue && salesStats.month.byRevenue.length > 0 ? (
+                        <div className="space-y-3">
+                          {salesStats.month.byRevenue.map((item: any, index: number) => (
+                            <div key={item.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg font-bold text-teal-600 w-8">{index + 1}</span>
+                                <div>
+                                  <p className="font-medium text-gray-900">{item.productName}</p>
+                                  <p className="text-sm text-gray-500">Daromad: {item.monthRevenue.toLocaleString()} so'm</p>
+                                </div>
+                              </div>
+                              <p className="text-sm font-semibold text-gray-600">{item.monthQuantity.toLocaleString()} dona</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-4">Oy davomida sotilgan mahsulotlar yo'q</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12">Ma'lumotlar yo'q</div>
           )}
@@ -917,25 +1036,44 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
 }
 
 function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [sendMode, setSendMode] = useState<'single' | 'mass'>('single');
   const [chatId, setChatId] = useState('');
   const [message, setMessage] = useState('');
   const [webAppUrl, setWebAppUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     
-    if (!chatId || !message) {
-      setError('Chat ID va xabar matni kiritilishi shart');
+    if (!message) {
+      setError('Xabar matni kiritilishi shart');
+      return;
+    }
+
+    if (sendMode === 'single' && !chatId) {
+      setError('Chat ID kiritilishi shart');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await telegramApi.send(parseInt(chatId), message, webAppUrl || undefined);
-      onSuccess();
+      if (sendMode === 'single') {
+        await telegramApi.send(parseInt(chatId), message, webAppUrl || undefined);
+        setSuccessMessage('Xabar muvaffaqiyatli yuborildi!');
+        setTimeout(() => {
+          onSuccess();
+        }, 1500);
+      } else {
+        const result = await telegramApi.sendMass(message, webAppUrl || undefined);
+        setSuccessMessage(result.message || `Xabar ${result.successful} ta foydalanuvchiga yuborildi!`);
+        setTimeout(() => {
+          onSuccess();
+        }, 2000);
+      }
     } catch (error: any) {
       setError(error.response?.data?.error || 'Xabar yuborishda xatolik');
     } finally {
@@ -945,7 +1083,7 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <h3 className="text-xl font-bold mb-4">Xabar yuborish</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -953,20 +1091,74 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
               {error}
             </div>
           )}
+          {successMessage && (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+              {successMessage}
+            </div>
+          )}
+          
+          {/* Переключатель режима отправки */}
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-900">Chat ID *</label>
-            <input
-              type="number"
-              value={chatId}
-              onChange={(e) => setChatId(e.target.value)}
-              required
-              placeholder="123456789"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Foydalanuvchi yoki guruh ID raqami
-            </p>
+            <label className="block text-sm font-medium mb-2 text-gray-900">Yuborish turi</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setSendMode('single');
+                  setError('');
+                  setSuccessMessage('');
+                }}
+                className={`flex-1 px-4 py-2 rounded-lg transition-all ${
+                  sendMode === 'single'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Bitta foydalanuvchiga
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSendMode('mass');
+                  setError('');
+                  setSuccessMessage('');
+                }}
+                className={`flex-1 px-4 py-2 rounded-lg transition-all ${
+                  sendMode === 'mass'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Barcha foydalanuvchilarga
+              </button>
+            </div>
           </div>
+
+          {/* Поле Chat ID только для одиночной отправки */}
+          {sendMode === 'single' && (
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Chat ID *</label>
+              <input
+                type="number"
+                value={chatId}
+                onChange={(e) => setChatId(e.target.value)}
+                required={sendMode === 'single'}
+                placeholder="123456789"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Foydalanuvchi yoki guruh ID raqami
+              </p>
+            </div>
+          )}
+
+          {sendMode === 'mass' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                ⚠️ Xabar barcha bot foydalanuvchilariga yuboriladi. {`{name}`} - foydalanuvchi ismi bilan almashtiriladi.
+              </p>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-900">Xabar matni *</label>
             <textarea
@@ -1004,7 +1196,10 @@ function SendMessageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
               disabled={isSubmitting}
               className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:bg-gray-400 shadow-md hover:shadow-lg transition-all"
             >
-              {isSubmitting ? 'Yuborilmoqda...' : 'Yuborish'}
+              {isSubmitting 
+                ? (sendMode === 'mass' ? 'Yuborilmoqda...' : 'Yuborilmoqda...')
+                : (sendMode === 'mass' ? 'Barchaga yuborish' : 'Yuborish')
+              }
             </button>
           </div>
         </form>
@@ -1272,7 +1467,7 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
     e.preventDefault();
     setError('');
 
-    if (!formData.title || !formData.description || !formData.phone || !formData.email) {
+    if (!formData.title || !formData.description) {
       setError('Barcha majburiy maydonlarni to\'ldiring');
       return;
     }
@@ -1361,22 +1556,20 @@ function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSucces
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1 text-gray-900">Telefon *</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Telefon</label>
               <input
                 type="text"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-gray-900">Email *</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Email</label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
             </div>
