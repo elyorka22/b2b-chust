@@ -552,9 +552,9 @@ app.get('/api/stats/sales', requireAuth, async (req, res) => {
       
       filteredOrders = orders.filter(order => {
         const items = order.items || [];
-        return items.some((item: any) => storeProductIds.has(item.productId));
+        return items.some((item) => storeProductIds.has(item.productId));
       }).map(order => {
-        const items = (order.items || []).filter((item: any) => storeProductIds.has(item.productId));
+        const items = (order.items || []).filter((item) => storeProductIds.has(item.productId));
         return { ...order, items };
       });
     }
