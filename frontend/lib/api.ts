@@ -15,7 +15,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     // Логируем запросы для отладки
-    console.log('[API] Запрос:', config.method?.toUpperCase(), config.baseURL + config.url);
+    console.log('[API] Запрос:', config.method?.toUpperCase(), (config.baseURL || '') + config.url);
     return config;
   },
   (error) => {
