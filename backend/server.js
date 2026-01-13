@@ -118,18 +118,20 @@ app.get('/api/products', async (req, res) => {
 
     // Пытаемся получить пользователя из токена (необязательно)
     let user = null;
+    let hasToken = false;
     try {
       const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies?.['auth-token'];
       if (token) {
+        hasToken = true;
         const decoded = jwt.verify(token, JWT_SECRET);
         user = decoded;
         console.log('[PRODUCTS API] Пользователь найден:', { id: user.id, role: user.role });
       } else {
-        console.log('[PRODUCTS API] Токен не найден, показываем все товары');
+        console.log('[PRODUCTS API] Токен не найден, показываем все товары (публичный каталог)');
       }
     } catch (error) {
       // Если токен невалиден или отсутствует, user остается null
-      console.log('[PRODUCTS API] Токен невалиден или отсутствует, показываем все товары');
+      console.log('[PRODUCTS API] Токен невалиден или отсутствует, показываем все товары (публичный каталог)');
     }
 
     let query = supabaseAdmin
@@ -137,12 +139,20 @@ app.get('/api/products', async (req, res) => {
       .select('*')
       .order('created_at', { ascending: false });
 
-    // Если это магазин, фильтруем только его товары
-    if (user && user.role === 'magazin') {
+    // Фильтруем по магазину ТОЛЬКО если:
+    // 1. Пользователь авторизован (есть валидный токен)
+    // 2. Роль пользователя - магазин
+    // 3. Запрос идет из админ-панели (не публичный каталог)
+    // Для публичного каталога (без токена) всегда показываем все товары
+    if (hasToken && user && user.role === 'magazin') {
+      // Проверяем, не является ли это запросом из публичного каталога
+      // Если токен есть, но это может быть публичный каталог с сохраненным токеном,
+      // то все равно фильтруем по магазину для безопасности админ-панели
+      // Но для публичного просмотра каталога токен не должен отправляться
       console.log('[PRODUCTS API] Фильтруем товары для магазина:', user.id);
       query = query.eq('store_id', user.id);
     } else {
-      console.log('[PRODUCTS API] Показываем все товары (не магазин или не авторизован)');
+      console.log('[PRODUCTS API] Показываем все товары (публичный каталог или не магазин)');
     }
 
     const { data, error } = await query;

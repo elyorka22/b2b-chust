@@ -24,17 +24,17 @@ export default function HomePage() {
         console.error('Ошибка загрузки товаров через API:', error);
         console.error('Детали ошибки:', error.response?.data || error.message);
         
-        // Fallback: пробуем загрузить напрямую через fetch
+        // Fallback: пробуем загрузить напрямую через fetch (без токена для публичного каталога)
         try {
           const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
-          console.log('[FALLBACK] Пробуем загрузить через fetch:', `${API_BASE_URL}/api/products`);
+          console.log('[FALLBACK] Пробуем загрузить через fetch (публичный запрос):', `${API_BASE_URL}/api/products`);
           
           const response = await fetch(`${API_BASE_URL}/api/products`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
             },
-            credentials: 'include',
+            credentials: 'omit', // Не отправляем cookies для публичного каталога
           });
           
           if (!response.ok) {

@@ -7,6 +7,12 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Публичный API клиент без токена авторизации (для каталога товаров)
+const publicApi = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: false,
+});
+
 // Добавляем токен авторизации в заголовки каждого запроса
 api.interceptors.request.use(
   (config) => {
@@ -40,8 +46,11 @@ api.interceptors.response.use(
 
 // Products API
 export const productsApi = {
-  getAll: () => api.get('/api/products').then(res => res.data),
-  getById: (id: string) => api.get(`/api/products/${id}`).then(res => res.data),
+  // Публичный метод без токена (для каталога)
+  getAll: () => publicApi.get('/api/products').then(res => res.data),
+  // Публичный метод без токена (для просмотра товара)
+  getById: (id: string) => publicApi.get(`/api/products/${id}`).then(res => res.data),
+  // Приватные методы с токеном (для админ-панели)
   create: (product: any) => api.post('/api/products', product).then(res => res.data),
   update: (id: string, updates: any) => api.put(`/api/products/${id}`, updates).then(res => res.data),
   delete: (id: string) => api.delete(`/api/products/${id}`).then(res => res.data),
