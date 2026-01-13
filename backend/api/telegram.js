@@ -272,9 +272,19 @@ export async function sendOrderNotification(order, supabaseAdmin) {
     );
 
     const successCount = results.filter(r => r.status === 'fulfilled').length;
-    console.log(`Уведомления отправлены: ${successCount}/${users.length}`);
+    const failedCount = results.filter(r => r.status === 'rejected').length;
+    console.log(`[NOTIFICATION] Уведомления отправлены: ${successCount}/${users.length}`);
+    
+    if (failedCount > 0) {
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.error(`[NOTIFICATION] Ошибка отправки пользователю ${users[index].username}:`, result.reason);
+        }
+      });
+    }
   } catch (error) {
-    console.error('Ошибка отправки уведомлений о заказе:', error);
+    console.error('[NOTIFICATION] Ошибка отправки уведомлений о заказе:', error);
+    console.error('[NOTIFICATION] Детали ошибки:', error.message, error.stack);
   }
 }
 
