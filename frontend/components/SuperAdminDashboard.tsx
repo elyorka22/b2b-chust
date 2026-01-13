@@ -288,17 +288,36 @@ export default function SuperAdminDashboard() {
                       ))}
                     </ul>
                   </div>
-                  <div className="flex gap-2">
-                    <select
-                      value={order.status}
-                      onChange={(e) => updateOrderStatus(order.id, e.target.value as Order['status'])}
-                      className="px-4 py-2 border border-gray-300 rounded"
-                    >
-                      <option value="pending">Kutayapti</option>
-                      <option value="processing">Qayta ishlanmoqda</option>
-                      <option value="completed">Yakunlangan</option>
-                      <option value="cancelled">Bekor qilindi</option>
-                    </select>
+                  <div className="flex gap-2 mt-4">
+                    {order.status === 'pending' && (
+                      <button
+                        onClick={() => updateOrderStatus(order.id, 'processing')}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                      >
+                        ✅ Buyurtma qabul qilindi
+                      </button>
+                    )}
+                    {order.status === 'processing' && (
+                      <button
+                        onClick={() => updateOrderStatus(order.id, 'completed')}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                      >
+                        🚚 Yetkazildi
+                      </button>
+                    )}
+                    {order.status !== 'cancelled' && order.status !== 'completed' && (
+                      <button
+                        onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                      >
+                        Bekor qilish
+                      </button>
+                    )}
+                    {order.status === 'completed' && (
+                      <div className="flex-1 px-4 py-2 bg-green-100 text-green-800 rounded-lg text-center font-semibold">
+                        ✅ Yakunlangan
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

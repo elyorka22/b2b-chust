@@ -278,6 +278,32 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
                       ))}
                     </ul>
                   </div>
+                  <div className="flex gap-2 mt-4">
+                    {order.status === 'pending' && (
+                      <button
+                        onClick={() => updateOrderStatus(order.id, 'processing')}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                      >
+                        ✅ Buyurtma qabul qilindi
+                      </button>
+                    )}
+                    {order.status === 'processing' && (
+                      <button
+                        onClick={() => updateOrderStatus(order.id, 'completed')}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                      >
+                        🚚 Yetkazildi
+                      </button>
+                    )}
+                    {order.status !== 'cancelled' && order.status !== 'completed' && (
+                      <button
+                        onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                      >
+                        Bekor qilish
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

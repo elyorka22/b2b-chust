@@ -305,6 +305,19 @@ app.patch('/api/orders/:id', requireAuth, async (req, res) => {
     }
 
     const { id } = req.params;
+    const { status } = req.body;
+    
+    // Получаем текущий заказ для сравнения статуса
+    const { data: currentOrder } = await supabaseAdmin
+      .from('b2b_orders')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (!currentOrder) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
     const { data, error } = await supabaseAdmin
       .from('b2b_orders')
       .update(req.body)
@@ -314,6 +327,18 @@ app.patch('/api/orders/:id', requireAuth, async (req, res) => {
 
     if (error) throw error;
     if (!data) return res.status(404).json({ error: 'Order not found' });
+    
+    // Если статус изменился на processing или completed, отправляем уведомление клиенту
+    if (status && status !== currentOrder.status && (status === 'processing' || status === 'completed')) {
+      try {
+        const { sendCustomerOrderStatusNotification } = await import('./api/telegram.js');
+        await sendCustomerOrderStatusNotification(data, status, supabaseAdmin);
+      } catch (notifError) {
+        console.error('Ошибка отправки уведомления клиенту:', notifError);
+        // Не прерываем обновление заказа, если уведомление не отправилось
+      }
+    }
+    
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -288,3 +288,107 @@ export async function sendOrderNotification(order, supabaseAdmin) {
   }
 }
 
+// Отправка уведомления клиенту об изменении статуса заказа
+export async function sendCustomerOrderStatusNotification(order, newStatus, supabaseAdmin) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_API_URL) {
+    console.log('[CUSTOMER_NOTIFICATION] TELEGRAM_BOT_TOKEN не настроен, пропускаем уведомления');
+    return;
+  }
+
+  try {
+    console.log('[CUSTOMER_NOTIFICATION] Отправка уведомления клиенту о статусе заказа:', order.id, newStatus);
+    
+    // Ищем клиента по телефону в таблице b2b_bot_users
+    // Пытаемся найти пользователя бота с таким телефоном
+    const phone = order.phone;
+    
+    // Ищем в b2b_bot_users по first_name или username, который может содержать телефон
+    // Или ищем в b2b_customers и связываем с b2b_bot_users
+    let customerChatId = null;
+    
+    // Сначала пытаемся найти в b2b_customers
+    const { data: customer, error: customerError } = await supabaseAdmin
+      .from('b2b_customers')
+      .select('id, phone, name')
+      .eq('phone', phone)
+      .single();
+    
+    if (customer && !customerError) {
+      // Если нашли клиента, ищем его chat_id в b2b_bot_users по имени или другим данным
+      // Но проще всего искать по телефону напрямую в b2b_bot_users, если там есть поле phone
+      // Или искать всех пользователей бота и проверять по имени
+      console.log('[CUSTOMER_NOTIFICATION] Найден клиент:', customer.id, customer.name);
+    }
+    
+    // Ищем в b2b_bot_users - проверяем всех пользователей
+    // Обычно chat_id клиента хранится в b2b_bot_users, но нужно найти по телефону
+    // Для упрощения будем искать по first_name, который может совпадать с именем клиента
+    const { data: botUsers, error: botUsersError } = await supabaseAdmin
+      .from('b2b_bot_users')
+      .select('chat_id, first_name, last_name')
+      .limit(1000); // Получаем всех пользователей бота
+    
+    if (!botUsersError && botUsers) {
+      // Ищем пользователя по имени (если имя клиента совпадает с first_name в боте)
+      const matchingUser = botUsers.find(user => 
+        customer && customer.name && 
+        (user.first_name === customer.name || 
+         user.first_name?.includes(customer.name) ||
+         customer.name.includes(user.first_name || ''))
+      );
+      
+      if (matchingUser) {
+        customerChatId = matchingUser.chat_id;
+        console.log('[CUSTOMER_NOTIFICATION] Найден chat_id клиента:', customerChatId);
+      }
+    }
+    
+    // Если не нашли по имени, пытаемся найти по последней активности или другим признакам
+    // Для упрощения можно добавить поле phone в b2b_bot_users, но пока используем поиск по имени
+    
+    if (!customerChatId) {
+      console.log('[CUSTOMER_NOTIFICATION] Chat ID клиента не найден, пропускаем уведомление');
+      console.log('[CUSTOMER_NOTIFICATION] Клиент должен сначала начать диалог с ботом, чтобы получить chat_id');
+      return;
+    }
+
+    // Формируем сообщение в зависимости от статуса
+    let statusMessage = '';
+    let statusEmoji = '';
+    
+    if (newStatus === 'processing') {
+      statusMessage = '✅ Buyurtmangiz qabul qilindi va yig\'ilish jarayonida!';
+      statusEmoji = '📦';
+    } else if (newStatus === 'completed') {
+      statusMessage = '🎉 Buyurtmangiz yetkazildi! Rahmat!';
+      statusEmoji = '🚚';
+    } else {
+      // Для других статусов не отправляем уведомление
+      return;
+    }
+
+    const orderItems = order.items.map((item, idx) => 
+      `${idx + 1}. ${item.product_name || item.productName} - ${item.quantity} ${item.unit || 'dona'} × ${item.price.toLocaleString()} so'm`
+    ).join('\n');
+
+    const message = `${statusEmoji} ${statusMessage}\n\n` +
+      `📦 Buyurtma #${order.id.slice(0, 8)}\n` +
+      `🛍️ Mahsulotlar:\n${orderItems}\n\n` +
+      `💰 Jami: ${order.total.toLocaleString()} so'm\n` +
+      `📅 Vaqt: ${new Date(order.created_at || order.createdAt).toLocaleString('uz-UZ')}\n\n` +
+      `Savol-javoblar uchun biz bilan bog'laning! 👇`;
+
+    // Отправляем уведомление клиенту
+    const success = await sendMessage(customerChatId, message);
+    
+    if (success) {
+      console.log(`[CUSTOMER_NOTIFICATION] Уведомление клиенту отправлено успешно (chat_id: ${customerChatId})`);
+    } else {
+      console.error(`[CUSTOMER_NOTIFICATION] Ошибка отправки уведомления клиенту (chat_id: ${customerChatId})`);
+    }
+  } catch (error) {
+    console.error('[CUSTOMER_NOTIFICATION] Ошибка отправки уведомления клиенту:', error);
+    console.error('[CUSTOMER_NOTIFICATION] Детали ошибки:', error.message, error.stack);
+  }
+}
+
