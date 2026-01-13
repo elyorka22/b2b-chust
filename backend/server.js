@@ -28,6 +28,10 @@ const allowedOrigins = [
   'http://localhost:3001',
   // Добавляем также вариант без протокола на случай, если он указан в переменной
   process.env.FRONTEND_URL ? `https://${process.env.FRONTEND_URL.replace(/^https?:\/\//, '')}` : null,
+  // Telegram Web App origins
+  'https://web.telegram.org',
+  'https://webk.telegram.org',
+  'https://webz.telegram.org',
 ].filter(Boolean);
 
 app.use(cors({

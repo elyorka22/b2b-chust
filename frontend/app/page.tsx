@@ -14,12 +14,17 @@ export default function HomePage() {
   useEffect(() => {
     productsApi.getAll()
       .then(data => {
-        setProducts(data);
-        const cats = Array.from(new Set(data.map((p: any) => p.category).filter(Boolean))) as string[];
+        console.log('Загружено товаров:', data?.length || 0);
+        setProducts(data || []);
+        const cats = Array.from(new Set((data || []).map((p: any) => p.category).filter(Boolean))) as string[];
         setCategories(cats);
       })
       .catch(error => {
         console.error('Ошибка загрузки товаров:', error);
+        console.error('Детали ошибки:', error.response?.data || error.message);
+        // Устанавливаем пустой массив при ошибке
+        setProducts([]);
+        setCategories([]);
       })
       .finally(() => {
         setLoading(false);
