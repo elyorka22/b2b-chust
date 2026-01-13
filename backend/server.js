@@ -101,10 +101,29 @@ app.get('/api/products', async (req, res) => {
       return res.status(500).json({ error: 'Database not configured' });
     }
 
-    const { data, error } = await supabaseAdmin
+    // Пытаемся получить пользователя из токена (необязательно)
+    let user = null;
+    try {
+      const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies?.['auth-token'];
+      if (token) {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        user = decoded;
+      }
+    } catch {
+      // Если токен невалиден или отсутствует, user остается null
+    }
+
+    let query = supabaseAdmin
       .from('b2b_products')
       .select('*')
       .order('created_at', { ascending: false });
+
+    // Если это магазин, фильтруем только его товары
+    if (user && user.role === 'magazin') {
+      query = query.eq('store_id', user.id);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     res.json(data || []);
