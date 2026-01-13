@@ -259,6 +259,14 @@ app.post('/api/orders', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    console.log('[ORDER] Создание заказа:', { phone, address, itemsCount: items.length });
+    console.log('[ORDER] Товары в заказе:', items.map(item => ({
+      product_id: item.product_id,
+      product_name: item.product_name,
+      store_id: item.store_id,
+      quantity: item.quantity
+    })));
+
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     const { data: order, error } = await supabaseAdmin
