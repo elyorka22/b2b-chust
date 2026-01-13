@@ -116,9 +116,13 @@ app.get('/api/products', async (req, res) => {
       if (token) {
         const decoded = jwt.verify(token, JWT_SECRET);
         user = decoded;
+        console.log('[PRODUCTS API] Пользователь найден:', { id: user.id, role: user.role });
+      } else {
+        console.log('[PRODUCTS API] Токен не найден, показываем все товары');
       }
-    } catch {
+    } catch (error) {
       // Если токен невалиден или отсутствует, user остается null
+      console.log('[PRODUCTS API] Токен невалиден или отсутствует, показываем все товары');
     }
 
     let query = supabaseAdmin
@@ -128,12 +132,20 @@ app.get('/api/products', async (req, res) => {
 
     // Если это магазин, фильтруем только его товары
     if (user && user.role === 'magazin') {
+      console.log('[PRODUCTS API] Фильтруем товары для магазина:', user.id);
       query = query.eq('store_id', user.id);
+    } else {
+      console.log('[PRODUCTS API] Показываем все товары (не магазин или не авторизован)');
     }
 
     const { data, error } = await query;
 
-    if (error) throw error;
+    if (error) {
+      console.error('[PRODUCTS API] Ошибка получения товаров:', error);
+      throw error;
+    }
+    
+    console.log('[PRODUCTS API] Возвращено товаров:', data?.length || 0);
     res.json(data || []);
   } catch (error) {
     res.status(500).json({ error: error.message });
