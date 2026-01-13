@@ -43,7 +43,8 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const data = await productsApi.getAll();
+      // Используем метод для админ-панели (с токеном, фильтрует по магазину)
+      const data = await productsApi.getAllForAdmin();
       setProducts(data);
     } catch (error) {
       console.error('Mahsulotlarni yuklashda xatolik:', error);

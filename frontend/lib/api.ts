@@ -50,6 +50,8 @@ export const productsApi = {
   getAll: () => publicApi.get('/api/products').then(res => res.data),
   // Публичный метод без токена (для просмотра товара)
   getById: (id: string) => publicApi.get(`/api/products/${id}`).then(res => res.data),
+  // Приватный метод с токеном (для админ-панели - фильтрует по магазину)
+  getAllForAdmin: () => api.get('/api/products').then(res => res.data),
   // Приватные методы с токеном (для админ-панели)
   create: (product: any) => api.post('/api/products', product).then(res => res.data),
   update: (id: string, updates: any) => api.put(`/api/products/${id}`, updates).then(res => res.data),

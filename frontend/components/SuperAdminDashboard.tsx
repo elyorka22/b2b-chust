@@ -43,7 +43,9 @@ export default function SuperAdminDashboard() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const data = await productsApi.getAll();
+      // Используем метод для админ-панели (с токеном)
+      // Для супер-админа backend покажет все товары, для магазинов - только свои
+      const data = await productsApi.getAllForAdmin();
       setProducts(data);
     } catch (error) {
       console.error('Mahsulotlarni yuklashda xatolik:', error);

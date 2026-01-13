@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
 import StoreDashboard from '@/components/StoreDashboard';
 import SuperAdminDashboard from '@/components/SuperAdminDashboard';
 import { getCurrentUserFromToken, AuthUser } from '@/lib/auth';
@@ -46,7 +45,6 @@ export default function AdminPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center py-12">Yuklanmoqda...</div>
         </main>
@@ -60,7 +58,6 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <main className="container mx-auto px-4 py-8">
         {user.role === 'super-admin' ? (
           <SuperAdminDashboard />
