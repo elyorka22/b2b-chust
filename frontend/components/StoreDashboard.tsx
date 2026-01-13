@@ -10,7 +10,7 @@ interface StoreDashboardProps {
 }
 
 export default function StoreDashboard({ storeName }: StoreDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'stats'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'stats' | 'reports'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -73,6 +73,37 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
       console.error('Statistikani yuklashda xatolik:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const downloadReport = async (period: 'week' | 'month') => {
+    try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const token = document.cookie.split('; ').find(row => row.startsWith('auth-token='))?.split('=')[1];
+      
+      const response = await fetch(`${API_BASE_URL}/api/reports/${period}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Hisobot yuklab olishda xatolik');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `hisobot_${period === 'week' ? 'haftalik' : 'oylik'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Hisobot yuklab olishda xatolik:', error);
+      alert('Hisobot yuklab olishda xatolik yuz berdi');
     }
   };
 
@@ -165,6 +196,12 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
           className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'stats' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
         >
           Statistika
+        </button>
+        <button
+          onClick={() => setActiveTab('reports')}
+          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'reports' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
+        >
+          Hisobot
         </button>
       </div>
 
@@ -342,6 +379,31 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
           ) : (
             <div className="text-center py-12">Ma'lumotlar yo'q</div>
           )}
+        </div>
+      )}
+
+      {activeTab === 'reports' && (
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Hisobot</h2>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <p className="text-gray-800 mb-6 font-medium">
+              Magazin statistikasini PDF formatida yuklab oling
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={() => downloadReport('week')}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all font-semibold"
+              >
+                📊 Haftalik hisobot yuklab olish
+              </button>
+              <button
+                onClick={() => downloadReport('month')}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg hover:from-emerald-700 hover:to-teal-700 shadow-md hover:shadow-lg transition-all font-semibold"
+              >
+                📈 Oylik hisobot yuklab olish
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
