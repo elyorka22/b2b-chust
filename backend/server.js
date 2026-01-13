@@ -247,21 +247,54 @@ app.get('/api/orders', requireAuth, async (req, res) => {
       return res.status(500).json({ error: 'Database not configured' });
     }
 
-    let query = supabaseAdmin.from('b2b_orders').select('*').order('created_at', { ascending: false });
+    // Получаем все заказы
+    const { data: allOrders, error: ordersError } = await supabaseAdmin
+      .from('b2b_orders')
+      .select('*')
+      .order('created_at', { ascending: false });
 
+    if (ordersError) throw ordersError;
+
+    let orders = allOrders || [];
+
+    // Если это магазин, фильтруем заказы по его товарам
     if (req.user.role === 'magazin') {
-      // Магазин видит только заказы со своими товарами
-      const products = await supabaseAdmin
+      // Получаем ID товаров этого магазина
+      const { data: products, error: productsError } = await supabaseAdmin
         .from('b2b_products')
         .select('id')
         .eq('store_id', req.user.id);
 
-      // Упрощенная логика - в реальности нужна более сложная фильтрация
+      if (productsError) throw productsError;
+
+      const storeProductIds = new Set((products || []).map(p => p.id));
+
+      // Фильтруем заказы, оставляя только те, где есть товары этого магазина
+      orders = orders
+        .map(order => {
+          const items = order.items || [];
+          const storeItems = items.filter(item => {
+            const productId = item.product_id || item.productId;
+            return productId && storeProductIds.has(productId);
+          });
+
+          if (storeItems.length === 0) return null;
+
+          // Пересчитываем total только для товаров магазина
+          const storeTotal = storeItems.reduce((sum, item) => {
+            return sum + (item.price || 0) * (item.quantity || 0);
+          }, 0);
+
+          return {
+            ...order,
+            items: storeItems,
+            total: storeTotal,
+          };
+        })
+        .filter(Boolean);
     }
 
-    const { data, error } = await query;
-    if (error) throw error;
-    res.json(data || []);
+    res.json(orders);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
