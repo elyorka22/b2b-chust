@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import PDFDocument from 'pdfkit';
+import PDFDocument from 'pdfkit';
 
 dotenv.config();
 
@@ -692,6 +693,141 @@ app.get('/api/stats/sales', requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('[API] Ошибка получения статистики продаж:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========== REPORTS API ==========
+app.get('/api/reports/:period', requireAuth, async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { period } = req.params; // 'week' or 'month'
+    
+    if (period !== 'week' && period !== 'month') {
+      return res.status(400).json({ error: 'Invalid period. Use "week" or "month"' });
+    }
+
+    // Получаем статистику за период
+    const now = new Date();
+    let startDate;
+    
+    if (period === 'week') {
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+      startDate = new Date(now.setDate(diff));
+      startDate.setHours(0, 0, 0, 0);
+    } else {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      startDate.setHours(0, 0, 0, 0);
+    }
+
+    // Получаем заказы и товары
+    const { data: allOrders } = await supabaseAdmin
+      .from('b2b_orders')
+      .select('*')
+      .gte('created_at', startDate.toISOString());
+    
+    const { data: allProducts } = await supabaseAdmin
+      .from('b2b_products')
+      .select('*');
+
+    // Фильтруем по магазину если нужно
+    let orders = allOrders || [];
+    let products = allProducts || [];
+
+    if (req.user.role === 'magazin') {
+      products = allProducts.filter(p => p.store_id === req.user.id);
+      const storeProductIds = new Set(products.map(p => p.id));
+      
+      orders = allOrders.filter(order => {
+        const items = order.items || [];
+        return items.some((item) => {
+          const productId = item.product_id || item.productId;
+          return productId && storeProductIds.has(productId);
+        });
+      });
+    }
+
+    // Вычисляем статистику
+    const completedOrders = orders.filter(o => o.status === 'completed');
+    const totalRevenue = completedOrders.reduce((sum, o) => sum + parseFloat(o.total || 0), 0);
+    const totalOrders = orders.length;
+    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    const processingOrders = orders.filter(o => o.status === 'processing').length;
+    const completedOrdersCount = completedOrders.length;
+
+    // Топ товары по количеству
+    const productStats = {};
+    completedOrders.forEach(order => {
+      (order.items || []).forEach(item => {
+        const productId = item.product_id || item.productId;
+        const productName = item.product_name || item.productName || 'Noma\'lum';
+        if (!productStats[productId]) {
+          productStats[productId] = {
+            name: productName,
+            quantity: 0,
+            revenue: 0,
+          };
+        }
+        productStats[productId].quantity += item.quantity || 0;
+        productStats[productId].revenue += (item.price || 0) * (item.quantity || 0);
+      });
+    });
+
+    const topProducts = Object.values(productStats)
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 10);
+
+    // Создаем PDF
+    const doc = new PDFDocument({ margin: 50 });
+    
+    // Устанавливаем заголовки для ответа
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=hisobot_${period === 'week' ? 'haftalik' : 'oylik'}_${new Date().toISOString().split('T')[0]}.pdf`);
+    
+    // Отправляем PDF в ответ
+    doc.pipe(res);
+
+    // Заголовок
+    doc.fontSize(20).text('Magazin Hisoboti', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(14).text(`Davr: ${period === 'week' ? 'Haftalik' : 'Oylik'}`, { align: 'center' });
+    doc.fontSize(12).text(`Sana: ${new Date().toLocaleDateString('uz-UZ')}`, { align: 'center' });
+    doc.moveDown(2);
+
+    if (req.user.store_name) {
+      doc.fontSize(16).text(`Magazin: ${req.user.store_name}`);
+      doc.moveDown();
+    }
+
+    // Общая статистика
+    doc.fontSize(14).text('Umumiy statistika:', { underline: true });
+    doc.moveDown(0.5);
+    doc.fontSize(12).text(`Jami buyurtmalar: ${totalOrders}`);
+    doc.text(`Kutayapti: ${pendingOrders}`);
+    doc.text(`Qayta ishlanmoqda: ${processingOrders}`);
+    doc.text(`Yakunlangan: ${completedOrdersCount}`);
+    doc.text(`Jami daromad: ${totalRevenue.toLocaleString()} so'm`);
+    doc.moveDown();
+
+    // Топ товары
+    if (topProducts.length > 0) {
+      doc.fontSize(14).text('Eng ko\'p sotilgan mahsulotlar:', { underline: true });
+      doc.moveDown(0.5);
+      topProducts.forEach((product, index) => {
+        doc.fontSize(11).text(
+          `${index + 1}. ${product.name} - ${product.quantity} dona - ${product.revenue.toLocaleString()} so'm`
+        );
+      });
+    }
+
+    // Завершаем PDF
+    doc.end();
+  } catch (error) {
+    console.error('Ошибка генерации PDF:', error);
     res.status(500).json({ error: error.message });
   }
 });
