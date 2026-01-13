@@ -544,8 +544,11 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
               <input
                 type="number"
                 step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                value={formData.price === '' ? '' : formData.price}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, price: value === '' ? '' : parseFloat(value) || '' });
+                }}
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
