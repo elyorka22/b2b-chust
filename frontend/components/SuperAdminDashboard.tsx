@@ -695,9 +695,9 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
   const [formData, setFormData] = useState({
     name: product?.name || '',
     description: product?.description || '',
-    price: product?.price || 0,
+    price: product?.price ?? '',
     unit: product?.unit || 'dona' as 'dona' | 'upakovka' | 'karobka',
-    stock: product?.stock || 0,
+    stock: product?.stock ?? '',
     image: product?.image || '',
     category: product?.category || '',
   });
@@ -825,8 +825,11 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
               <input
                 type="number"
                 step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                value={formData.price === '' ? '' : formData.price}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, price: value === '' ? '' : parseFloat(value) || '' });
+                }}
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
               />
@@ -849,8 +852,11 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
             <label className="block text-sm font-medium mb-1 text-gray-900">Miqdori *</label>
             <input
               type="number"
-              value={formData.stock}
-              onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+              value={formData.stock === '' ? '' : formData.stock}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFormData({ ...formData, stock: value === '' ? '' : parseInt(value) || '' });
+              }}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
