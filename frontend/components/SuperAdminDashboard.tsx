@@ -767,7 +767,13 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
         }
       }
 
-      const submitData = { ...formData, image: imageUrl };
+      // Конвертируем пустые строки в 0 для отправки
+      const submitData = { 
+        ...formData, 
+        image: imageUrl,
+        price: formData.price === '' ? 0 : (typeof formData.price === 'number' ? formData.price : parseFloat(formData.price) || 0),
+        stock: formData.stock === '' ? 0 : (typeof formData.stock === 'number' ? formData.stock : parseInt(formData.stock) || 0),
+      };
       console.log('Данные для отправки:', { ...submitData, image: imageUrl, hasImage: !!imageUrl });
       
       if (product) {
