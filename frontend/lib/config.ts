@@ -11,6 +11,8 @@ if (typeof window !== 'undefined') {
   console.log('[CONFIG] API_BASE_URL:', API_BASE_URL);
   console.log('[CONFIG] NEXT_PUBLIC_BACKEND_URL:', process.env.NEXT_PUBLIC_BACKEND_URL);
   console.log('[CONFIG] User Agent:', navigator.userAgent);
-  console.log('[CONFIG] Is Telegram Web App:', window.Telegram?.WebApp ? 'Yes' : 'No');
+  // Проверяем наличие Telegram Web App API
+  const telegramWebApp = (window as any).Telegram?.WebApp;
+  console.log('[CONFIG] Is Telegram Web App:', telegramWebApp ? 'Yes' : 'No');
 }
 
