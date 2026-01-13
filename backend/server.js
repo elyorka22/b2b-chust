@@ -37,18 +37,25 @@ const allowedOrigins = [
 app.use(cors({
   origin: function (origin, callback) {
     // Разрешаем запросы без origin (например, из Postman или мобильных приложений)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('[CORS] Запрос без origin - разрешаем');
+      return callback(null, true);
+    }
+    
+    console.log('[CORS] Запрос от origin:', origin);
     
     // Проверяем, есть ли origin в списке разрешенных
     if (allowedOrigins.some(allowed => origin === allowed || origin.startsWith(allowed))) {
+      console.log('[CORS] Origin разрешен (в списке)');
       callback(null, true);
     } else if (origin.includes('telegram.org')) {
       // Разрешаем все Telegram Web App origins
+      console.log('[CORS] Origin разрешен (Telegram Web App)');
       callback(null, true);
     } else {
       // Для отладки: логируем все origins
-      console.log('CORS blocked origin:', origin);
-      console.log('Allowed origins:', allowedOrigins);
+      console.log('[CORS] Неизвестный origin, но разрешаем для отладки:', origin);
+      console.log('[CORS] Разрешенные origins:', allowedOrigins);
       // Временно разрешаем все для отладки
       callback(null, true);
     }

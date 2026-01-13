@@ -14,9 +14,26 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Логируем запросы для отладки
+    console.log('[API] Запрос:', config.method?.toUpperCase(), config.baseURL + config.url);
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Добавляем обработчик ответов для логирования ошибок
+api.interceptors.response.use(
+  (response) => {
+    console.log('[API] Успешный ответ:', response.config.url, response.status);
+    return response;
+  },
+  (error) => {
+    console.error('[API] Ошибка запроса:', error.config?.url, error.response?.status, error.message);
+    if (error.response) {
+      console.error('[API] Данные ошибки:', error.response.data);
+    }
     return Promise.reject(error);
   }
 );
