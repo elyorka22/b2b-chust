@@ -42,11 +42,15 @@ app.use(cors({
     // Проверяем, есть ли origin в списке разрешенных
     if (allowedOrigins.some(allowed => origin === allowed || origin.startsWith(allowed))) {
       callback(null, true);
+    } else if (origin.includes('telegram.org')) {
+      // Разрешаем все Telegram Web App origins
+      callback(null, true);
     } else {
       // Для отладки: логируем все origins
       console.log('CORS blocked origin:', origin);
       console.log('Allowed origins:', allowedOrigins);
-      callback(new Error('Not allowed by CORS'));
+      // Временно разрешаем все для отладки
+      callback(null, true);
     }
   },
   credentials: true,
