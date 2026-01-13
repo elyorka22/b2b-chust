@@ -6,7 +6,6 @@ import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import PDFDocument from 'pdfkit';
-import PDFDocument from 'pdfkit';
 
 dotenv.config();
 
