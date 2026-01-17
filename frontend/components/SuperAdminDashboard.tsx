@@ -123,6 +123,15 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const data = await categoriesApi.getAll();
+      setCategories(data);
+    } catch (error) {
+      console.error('Kategoriyalarni yuklashda xatolik:', error);
+    }
+  };
+
   const handleDeleteProduct = async (id: string) => {
     if (!confirm('Mahsulotni o\'chirish?')) return;
     try {
@@ -311,20 +320,41 @@ export default function SuperAdminDashboard() {
         <div>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Mahsulotlarni boshqarish</h2>
-            <button
-              onClick={() => {
-                setEditingProduct(null);
-                setShowProductForm(true);
-              }}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all text-sm sm:text-base w-full sm:w-auto"
-            >
-              Mahsulot qo'shish
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => {
+                  setShowCategoryForm(true);
+                }}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all text-sm sm:text-base w-full sm:w-auto"
+              >
+                Kategoriya yaratish
+              </button>
+              <button
+                onClick={() => {
+                  setEditingProduct(null);
+                  setShowProductForm(true);
+                }}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all text-sm sm:text-base w-full sm:w-auto"
+              >
+                Mahsulot qo'shish
+              </button>
+            </div>
           </div>
+          {showCategoryForm && (
+            <CategoryForm
+              onClose={() => setShowCategoryForm(false)}
+              onSuccess={() => {
+                setShowCategoryForm(false);
+                fetchCategories();
+                alert('Kategoriya yaratildi!');
+              }}
+            />
+          )}
           {showProductForm && (
             <ProductForm
               product={editingProduct}
               users={users.filter(u => u.role === 'magazin')}
+              categories={categories}
               onClose={() => {
                 setShowProductForm(false);
                 setEditingProduct(null);
@@ -857,7 +887,88 @@ export default function SuperAdminDashboard() {
   );
 }
 
-function ProductForm({ product, users, onClose, onSuccess }: { product: Product | null; users: any[]; onClose: () => void; onSuccess: () => void }) {
+function CategoryForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      await categoriesApi.create(formData);
+      onSuccess();
+    } catch (error: any) {
+      setError(error.response?.data?.error || 'Kategoriyani yaratishda xatolik');
+      console.error('Ошибка создания категории:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg max-w-md w-full mx-2 sm:mx-0">
+        <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-gray-200">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">Kategoriya yaratish</h3>
+        </div>
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm mb-4">
+              {error}
+            </div>
+          )}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Nomi *</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+                placeholder="Kategoriya nomi"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white text-sm sm:text-base"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900">Tavsifi</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                placeholder="Kategoriya tavsifi (ixtiyoriy)"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white text-sm sm:text-base"
+              />
+            </div>
+          </div>
+          <div className="mt-6 flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-sm sm:text-base"
+            >
+              Bekor qilish
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:bg-gray-400 shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
+            >
+              {isSubmitting ? 'Saqlanmoqda...' : 'Saqlash'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ProductForm({ product, users, categories, onClose, onSuccess }: { product: Product | null; users: any[]; categories: any[]; onClose: () => void; onSuccess: () => void }) {
   const [formData, setFormData] = useState({
     name: product?.name || '',
     description: product?.description || '',
