@@ -1608,6 +1608,152 @@ function WelcomeMessageForm({ onClose, onSuccess }: { onClose: () => void; onSuc
   );
 }
 
+function BotButtonsForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [botAboutButtonText, setBotAboutButtonText] = useState('');
+  const [botAboutMessage, setBotAboutMessage] = useState('');
+  const [botPartnershipButtonText, setBotPartnershipButtonText] = useState('');
+  const [botPartnershipMessage, setBotPartnershipMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const [aboutButton, aboutMessage, partnershipButton, partnershipMessage] = await Promise.all([
+          botSettingsApi.get('bot_about_button_text').catch(() => ({ value: 'ℹ️ Bot haqida' })),
+          botSettingsApi.get('bot_about_message').catch(() => ({ value: '' })),
+          botSettingsApi.get('bot_partnership_button_text').catch(() => ({ value: '🤝 Hamkorlik' })),
+          botSettingsApi.get('bot_partnership_message').catch(() => ({ value: '' })),
+        ]);
+
+        setBotAboutButtonText(aboutButton.value || 'ℹ️ Bot haqida');
+        setBotAboutMessage(aboutMessage.value || '');
+        setBotPartnershipButtonText(partnershipButton.value || '🤝 Hamkorlik');
+        setBotPartnershipMessage(partnershipMessage.value || '');
+      } catch (error) {
+        console.error('Ошибка загрузки настроек кнопок:', error);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      await Promise.all([
+        botSettingsApi.update('bot_about_button_text', botAboutButtonText),
+        botSettingsApi.update('bot_about_message', botAboutMessage),
+        botSettingsApi.update('bot_partnership_button_text', botPartnershipButtonText),
+        botSettingsApi.update('bot_partnership_message', botPartnershipMessage),
+      ]);
+
+      onSuccess();
+    } catch (error: any) {
+      setError(error.response?.data?.error || 'Sozlamalarni saqlashda xatolik');
+      console.error('Ошибка сохранения настроек кнопок:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col mx-2 sm:mx-0">
+        <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-gray-200 flex-shrink-0">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">Bot tugmalari sozlash</h3>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="p-4 sm:p-6 pt-3 sm:pt-4 overflow-y-auto flex-1 space-y-4 sm:space-y-6">
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm">
+                {error}
+              </div>
+            )}
+
+            {/* Bot haqida */}
+            <div className="border-b border-gray-200 pb-4">
+              <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-3">Bot haqida</h4>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-900">Tugma matni *</label>
+                  <input
+                    type="text"
+                    value={botAboutButtonText}
+                    onChange={(e) => setBotAboutButtonText(e.target.value)}
+                    required
+                    placeholder="ℹ️ Bot haqida"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white text-sm sm:text-base"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-900">Javob xabari *</label>
+                  <textarea
+                    value={botAboutMessage}
+                    onChange={(e) => setBotAboutMessage(e.target.value)}
+                    required
+                    rows={4}
+                    placeholder="Bu bot B2B Chust do'koni uchun yaratilgan..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white text-sm sm:text-base"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Hamkorlik */}
+            <div>
+              <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-3">Hamkorlik</h4>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-900">Tugma matni *</label>
+                  <input
+                    type="text"
+                    value={botPartnershipButtonText}
+                    onChange={(e) => setBotPartnershipButtonText(e.target.value)}
+                    required
+                    placeholder="🤝 Hamkorlik"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white text-sm sm:text-base"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-900">Javob xabari *</label>
+                  <textarea
+                    value={botPartnershipMessage}
+                    onChange={(e) => setBotPartnershipMessage(e.target.value)}
+                    required
+                    rows={4}
+                    placeholder="Hamkorlik uchun biz bilan bog'laning..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white text-sm sm:text-base"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="p-4 sm:p-6 pt-3 sm:pt-4 border-t border-gray-200 flex flex-col sm:flex-row gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-sm sm:text-base"
+            >
+              Bekor qilish
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:bg-gray-400 shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
+            >
+              {isSubmitting ? 'Saqlanmoqda...' : 'Saqlash'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function ContactPageForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   const [formData, setFormData] = useState({
     title: '',
