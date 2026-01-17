@@ -1,5 +1,16 @@
 -- Добавление настроек для callback кнопок бота
 
+-- Создание таблицы, если её нет (на случай, если миграция 004 не была выполнена)
+CREATE TABLE IF NOT EXISTS b2b_bot_settings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key VARCHAR(255) UNIQUE NOT NULL,
+  value TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Создание индекса, если его нет
+CREATE INDEX IF NOT EXISTS idx_b2b_bot_settings_key ON b2b_bot_settings(key);
+
 -- Добавление настроек для кнопок "Bot haqida" и "Hamkorlik"
 INSERT INTO b2b_bot_settings (key, value)
 VALUES 
