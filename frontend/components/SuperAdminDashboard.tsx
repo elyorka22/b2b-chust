@@ -29,6 +29,8 @@ export default function SuperAdminDashboard() {
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [showBalanceForm, setShowBalanceForm] = useState(false);
+  const [selectedStore, setSelectedStore] = useState<any>(null);
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -931,11 +933,37 @@ export default function SuperAdminDashboard() {
                       <p className="text-gray-500 text-sm font-medium">Hali birinchi mahsulot qo'shilmagan</p>
                     )}
                   </div>
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <button
+                      onClick={() => {
+                        setSelectedStore(sub);
+                        setShowBalanceForm(true);
+                      }}
+                      className="w-full px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all font-medium"
+                    >
+                      Balansni yangilash
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
+      )}
+
+      {showBalanceForm && selectedStore && (
+        <BalanceUpdateForm
+          store={selectedStore}
+          onClose={() => {
+            setShowBalanceForm(false);
+            setSelectedStore(null);
+          }}
+          onSuccess={() => {
+            setShowBalanceForm(false);
+            setSelectedStore(null);
+            fetchSubscriptions();
+          }}
+        />
       )}
 
       {activeTab === 'settings' && (

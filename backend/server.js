@@ -602,6 +602,60 @@ app.post('/api/subscriptions/update-monthly', requireAuth, async (req, res) => {
   }
 });
 
+app.patch('/api/subscriptions/:storeId/balance', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'super-admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { storeId } = req.params;
+    const { amount } = req.body;
+
+    if (!amount || isNaN(parseFloat(amount))) {
+      return res.status(400).json({ error: 'Invalid amount' });
+    }
+
+    // Получаем текущий баланс магазина
+    const { data: store, error: fetchError } = await supabaseAdmin
+      .from('b2b_users')
+      .select('id, store_name, subscription_balance')
+      .eq('id', storeId)
+      .eq('role', 'magazin')
+      .single();
+
+    if (fetchError || !store) {
+      return res.status(404).json({ error: 'Store not found' });
+    }
+
+    const newBalance = (store.subscription_balance || 0) + parseFloat(amount);
+
+    // Обновляем баланс
+    const { data: updatedStore, error: updateError } = await supabaseAdmin
+      .from('b2b_users')
+      .update({ subscription_balance: newBalance })
+      .eq('id', storeId)
+      .select('id, store_name, subscription_balance, subscription_price, subscription_start_date')
+      .single();
+
+    if (updateError) throw updateError;
+
+    console.log(`[SUBSCRIPTION] Баланс магазина ${store.store_name} обновлен: ${store.subscription_balance} -> ${newBalance} (добавлено: ${amount})`);
+
+    res.json({
+      success: true,
+      store: updatedStore,
+      message: `Баланс успешно обновлен: ${store.subscription_balance || 0} -> ${newBalance}`,
+    });
+  } catch (error) {
+    console.error('[SUBSCRIPTIONS] Ошибка обновления баланса подписки:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ========== ORDERS API ==========
 app.get('/api/orders', requireAuth, async (req, res) => {
   try {
