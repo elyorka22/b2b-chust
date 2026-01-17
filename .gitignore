@@ -39,3 +39,4 @@ next-env.d.ts
 /public/uploads
 
 
+backend/node_modules/
