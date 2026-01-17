@@ -17,6 +17,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -141,10 +142,135 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
 
   return (
     <div className="w-full">
-      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 text-gray-900">Magazin paneli</h1>
-      {storeName && (
-        <p className="text-gray-900 mb-4 sm:mb-6 font-semibold text-sm sm:text-base">Magazin: {storeName}</p>
+      {/* Header with burger menu */}
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="flex items-center gap-3">
+          {/* Burger menu button - visible on mobile */}
+          <button
+            onClick={() => setIsMenuOpen(true)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="Open menu"
+          >
+            <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Magazin paneli</h1>
+            {storeName && (
+              <p className="text-gray-900 font-semibold text-sm sm:text-base">Magazin: {storeName}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Sidebar menu overlay - mobile */}
+      {isMenuOpen && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setIsMenuOpen(false)}
+          />
+          <div className="fixed left-0 top-0 h-full w-64 bg-white shadow-xl z-50 md:hidden transform transition-transform duration-300 ease-in-out">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Menu</h2>
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Close menu"
+              >
+                <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <nav className="p-4 space-y-2">
+              <button
+                onClick={() => {
+                  setActiveTab('products');
+                  setIsMenuOpen(false);
+                }}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors font-semibold ${
+                  activeTab === 'products' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Mahsulotlar
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('orders');
+                  setIsMenuOpen(false);
+                }}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors font-semibold ${
+                  activeTab === 'orders' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Buyurtmalar
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('stats');
+                  setIsMenuOpen(false);
+                }}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors font-semibold ${
+                  activeTab === 'stats' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Statistika
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('reports');
+                  setIsMenuOpen(false);
+                }}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors font-semibold ${
+                  activeTab === 'reports' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Hisobot
+              </button>
+            </nav>
+          </div>
+        </>
       )}
+
+      {/* Desktop tabs - hidden on mobile */}
+      <div className="hidden md:block mb-4 sm:mb-6">
+        <div className="flex gap-2 border-b">
+          <button
+            onClick={() => setActiveTab('products')}
+            className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
+          >
+            Mahsulotlar
+          </button>
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'orders' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
+          >
+            Buyurtmalar
+          </button>
+          <button
+            onClick={() => setActiveTab('stats')}
+            className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'stats' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
+          >
+            Statistika
+          </button>
+          <button
+            onClick={() => setActiveTab('reports')}
+            className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'reports' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
+          >
+            Hisobot
+          </button>
+        </div>
+      </div>
 
       {/* Telegram Chat ID настройка */}
       {currentUserId && (
@@ -178,35 +304,6 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
           }}
         />
       )}
-
-      <div className="mb-4 sm:mb-6 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="flex gap-2 border-b min-w-max sm:min-w-0">
-          <button
-            onClick={() => setActiveTab('products')}
-            className={`px-2 sm:px-4 py-2 transition-colors font-semibold text-xs sm:text-sm whitespace-nowrap ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
-          >
-            Mahsulotlar
-          </button>
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`px-2 sm:px-4 py-2 transition-colors font-semibold text-xs sm:text-sm whitespace-nowrap ${activeTab === 'orders' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
-          >
-            Buyurtmalar
-          </button>
-          <button
-            onClick={() => setActiveTab('stats')}
-            className={`px-2 sm:px-4 py-2 transition-colors font-semibold text-xs sm:text-sm whitespace-nowrap ${activeTab === 'stats' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
-          >
-            Statistika
-          </button>
-          <button
-            onClick={() => setActiveTab('reports')}
-            className={`px-2 sm:px-4 py-2 transition-colors font-semibold text-xs sm:text-sm whitespace-nowrap ${activeTab === 'reports' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
-          >
-            Hisobot
-          </button>
-        </div>
-      </div>
 
       {activeTab === 'products' && (
         <div>
