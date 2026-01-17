@@ -277,6 +277,136 @@ app.delete('/api/products/:id', requireAuth, async (req, res) => {
   }
 });
 
+// ========== CATEGORIES API ==========
+app.get('/api/categories', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('b2b_categories')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    res.json(data || []);
+  } catch (error) {
+    console.error('[CATEGORIES] Ошибка получения категорий:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/categories', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'super-admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { name, description } = req.body;
+
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ error: 'Category name is required' });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('b2b_categories')
+      .insert({
+        name: name.trim(),
+        description: description || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505' || error.message.includes('duplicate') || error.message.includes('unique')) {
+        return res.status(400).json({ error: 'Category with this name already exists' });
+      }
+      throw error;
+    }
+
+    res.status(201).json(data);
+  } catch (error) {
+    console.error('[CATEGORIES] Ошибка создания категории:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/categories/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'super-admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { id } = req.params;
+    const { name, description } = req.body;
+
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ error: 'Category name is required' });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('b2b_categories')
+      .update({
+        name: name.trim(),
+        description: description || null,
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505' || error.message.includes('duplicate') || error.message.includes('unique')) {
+        return res.status(400).json({ error: 'Category with this name already exists' });
+      }
+      throw error;
+    }
+
+    if (!data) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('[CATEGORIES] Ошибка обновления категории:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/categories/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'super-admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { id } = req.params;
+
+    const { error } = await supabaseAdmin
+      .from('b2b_categories')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[CATEGORIES] Ошибка удаления категории:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ========== ORDERS API ==========
 app.get('/api/orders', requireAuth, async (req, res) => {
   try {

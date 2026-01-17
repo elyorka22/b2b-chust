@@ -119,3 +119,11 @@ export const contactPageApi = {
   update: (data: any) => api.put('/api/contact-page', data).then(res => res.data),
 };
 
+// Categories API
+export const categoriesApi = {
+  getAll: () => api.get('/api/categories').then(res => res.data),
+  create: (category: { name: string; description?: string }) => api.post('/api/categories', category).then(res => res.data),
+  update: (id: string, category: { name: string; description?: string }) => api.put(`/api/categories/${id}`, category).then(res => res.data),
+  delete: (id: string) => api.delete(`/api/categories/${id}`).then(res => res.data),
+};
+

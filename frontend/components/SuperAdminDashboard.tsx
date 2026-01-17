@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Product, Order } from '@/lib/db';
-import { productsApi, ordersApi, statsApi, usersApi, telegramApi, botSettingsApi, userApi, contactPageApi } from '@/lib/api';
+import { productsApi, ordersApi, statsApi, usersApi, telegramApi, botSettingsApi, userApi, contactPageApi, categoriesApi } from '@/lib/api';
 import { getCurrentUserFromToken } from '@/lib/auth';
 
 export default function SuperAdminDashboard() {
@@ -30,6 +30,7 @@ export default function SuperAdminDashboard() {
   useEffect(() => {
     if (activeTab === 'products') {
       fetchProducts();
+      fetchCategories();
     } else if (activeTab === 'orders') {
       fetchOrders();
     } else if (activeTab === 'stats') {

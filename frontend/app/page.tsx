@@ -4,22 +4,24 @@ import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import ProductsList from '@/components/ProductsList';
 import CategoryFilter from '@/components/CategoryFilter';
-import { productsApi } from '@/lib/api';
+import { productsApi, categoriesApi } from '@/lib/api';
 
 export default function HomePage() {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadProducts = async () => {
+    const loadData = async () => {
       try {
+        // Загружаем категории из БД
+        const categoriesData = await categoriesApi.getAll();
+        setCategories(categoriesData || []);
+        
         // Пробуем загрузить через API
         const data = await productsApi.getAll();
         console.log('Загружено товаров через API:', data?.length || 0);
         setProducts(data || []);
-        const cats = Array.from(new Set((data || []).map((p: any) => p.category).filter(Boolean))) as string[];
-        setCategories(cats);
       } catch (error: any) {
         console.error('Ошибка загрузки товаров через API:', error);
         console.error('Детали ошибки:', error.response?.data || error.message);
@@ -44,20 +46,17 @@ export default function HomePage() {
           const data = await response.json();
           console.log('[FALLBACK] Загружено товаров через fetch:', data?.length || 0);
           setProducts(data || []);
-          const cats = Array.from(new Set((data || []).map((p: any) => p.category).filter(Boolean))) as string[];
-          setCategories(cats);
         } catch (fetchError: any) {
           console.error('[FALLBACK] Ошибка загрузки через fetch:', fetchError);
           // Устанавливаем пустой массив при ошибке
           setProducts([]);
-          setCategories([]);
         }
       } finally {
         setLoading(false);
       }
     };
     
-    loadProducts();
+    loadData();
   }, []);
 
   if (loading) {
@@ -84,7 +83,40 @@ export default function HomePage() {
             Barcha do'konlarni ko'rish
           </a>
         </div>
-        <ProductsList initialProducts={products} categories={categories} />
+        
+        {/* Карусель категорий */}
+        {categories.length > 0 && (
+          <div className="mb-8">
+            {Array.from({ length: Math.ceil(categories.length / 10) }).map((_, carouselIndex) => {
+              const startIndex = carouselIndex * 10;
+              const endIndex = Math.min(startIndex + 10, categories.length);
+              const carouselCategories = categories.slice(startIndex, endIndex);
+              
+              return (
+                <div key={carouselIndex} className="mb-6">
+                  <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                    {carouselCategories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => {
+                          const element = document.getElementById(`category-${category.name}`);
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }}
+                        className="flex-shrink-0 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-indigo-500 transition-all text-sm sm:text-base font-medium text-gray-900 whitespace-nowrap"
+                      >
+                        {category.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        
+        <ProductsList initialProducts={products} categories={categories.map(c => c.name)} />
       </main>
     </div>
   );
