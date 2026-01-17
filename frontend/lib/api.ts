@@ -77,6 +77,7 @@ export const usersApi = {
   getAll: () => api.get('/api/users').then(res => res.data),
   getById: (id: string) => api.get(`/api/users/${id}`).then(res => res.data),
   create: (user: any) => api.post('/api/users', user).then(res => res.data),
+  delete: (id: string) => api.delete(`/api/users/${id}`).then(res => res.data),
 };
 
 // Stats API

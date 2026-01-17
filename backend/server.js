@@ -1329,6 +1329,64 @@ app.post('/api/telegram/send-mass', requireAuth, async (req, res) => {
 });
 
 // ========== USER PASSWORD API ==========
+app.delete('/api/users/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'super-admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { id } = req.params;
+
+    // Проверяем, что пользователь существует и не является super-admin
+    const { data: user, error: userError } = await supabaseAdmin
+      .from('b2b_users')
+      .select('id, role')
+      .eq('id', id)
+      .single();
+
+    if (userError || !user) {
+      return res.status(404).json({ error: 'Foydalanuvchi topilmadi' });
+    }
+
+    // Нельзя удалить super-admin
+    if (user.role === 'super-admin') {
+      return res.status(403).json({ error: 'Super-admin foydalanuvchisini o\'chirib bo\'lmaydi' });
+    }
+
+    // Удаляем связанные данные: товары магазина
+    const { error: productsError } = await supabaseAdmin
+      .from('b2b_products')
+      .delete()
+      .eq('store_id', id);
+
+    if (productsError) {
+      console.error('[DELETE USER] Ошибка удаления товаров:', productsError);
+      // Продолжаем удаление пользователя даже если товары не удалились
+    }
+
+    // Удаляем пользователя
+    const { error: deleteError } = await supabaseAdmin
+      .from('b2b_users')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      console.error('[DELETE USER] Ошибка удаления пользователя:', deleteError);
+      throw deleteError;
+    }
+
+    console.log(`[DELETE USER] Пользователь ${id} успешно удален`);
+    res.json({ success: true, message: 'Foydalanuvchi muvaffaqiyatli o\'chirildi' });
+  } catch (error) {
+    console.error('[DELETE USER] Ошибка:', error);
+    res.status(500).json({ error: error.message || 'Foydalanuvchini o\'chirishda xatolik' });
+  }
+});
+
 app.put('/api/users/:id/password', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;

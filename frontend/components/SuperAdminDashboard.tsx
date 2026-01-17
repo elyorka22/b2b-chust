@@ -478,10 +478,10 @@ export default function SuperAdminDashboard() {
           ) : (
             <div className="space-y-4 mt-4">
               {users.map((user) => (
-                <div key={user.id} className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{user.username}</h3>
+                <div key={user.id} className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-3 sm:gap-0">
+                    <div className="flex-1">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">{user.username}</h3>
                       <p className="text-sm text-gray-800 font-medium">
                         Rol: {user.role === 'super-admin' ? 'Super-admin' : 'Magazin'}
                       </p>
@@ -492,15 +492,37 @@ export default function SuperAdminDashboard() {
                         Yaratilgan: {new Date(user.createdAt).toLocaleString('uz-UZ')}
                       </p>
                     </div>
-                    <button
-                      onClick={() => {
-                        setSelectedUserId(user.id);
-                        setShowChangePasswordForm(true);
-                      }}
-                      className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all text-xs sm:text-sm"
-                    >
-                      Parolni o'zgartirish
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={() => {
+                          setSelectedUserId(user.id);
+                          setShowChangePasswordForm(true);
+                        }}
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all text-xs sm:text-sm"
+                      >
+                        Parolni o'zgartirish
+                      </button>
+                      {user.role !== 'super-admin' && (
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`"${user.storeName || user.username}" magazinini o'chirishni tasdiqlaysizmi? Bu amal barcha mahsulotlarni ham o'chiradi.`)) {
+                              return;
+                            }
+                            try {
+                              await usersApi.delete(user.id);
+                              alert('Magazin muvaffaqiyatli o\'chirildi');
+                              fetchUsers();
+                            } catch (error: any) {
+                              console.error('Ошибка удаления магазина:', error);
+                              alert(error.response?.data?.error || 'Magazinni o\'chirishda xatolik');
+                            }
+                          }}
+                          className="bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-red-700 shadow-md hover:shadow-lg transition-all text-xs sm:text-sm"
+                        >
+                          O'chirish
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
