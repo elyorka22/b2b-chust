@@ -26,6 +26,8 @@ export default function SuperAdminDashboard() {
   const [showContactPageForm, setShowContactPageForm] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showBotButtonsForm, setShowBotButtonsForm] = useState(false);
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
     if (activeTab === 'products') {
