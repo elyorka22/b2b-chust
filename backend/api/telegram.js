@@ -248,12 +248,16 @@ export async function sendOrderNotification(order, supabaseAdmin) {
       users.map(async user => {
         // Фильтруем товары этого магазина
         const storeItems = order.items.filter(item => {
-          const itemStoreId = item.store_id || (item.product_id ? null : null);
-          // Если store_id нет в item, получаем из product_id
-          if (!itemStoreId && item.product_id) {
-            // Найдем товар в базе (уже должны были получить store_id выше)
-            return false; // Временно, нужно проверить
+          let itemStoreId = item.store_id || item.storeId;
+          
+          // Если store_id нет в item, получаем из product_id через базу
+          if (!itemStoreId && item.product_id && products) {
+            const product = products.find(p => p.id === item.product_id);
+            if (product && product.store_id) {
+              itemStoreId = product.store_id;
+            }
           }
+          
           return itemStoreId === user.id;
         });
 
