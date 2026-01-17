@@ -1246,12 +1246,18 @@ function ProductForm({ product, users, categories, onClose, onSuccess }: { produ
           </div>
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-900">Kategoriya</label>
-            <input
-              type="text"
+            <select
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
-            />
+            >
+              <option value="">Kategoriya tanlang</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.name}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </div>
           </div>
           <div className="p-6 pt-4 border-t border-gray-200 flex gap-2 flex-shrink-0">
