@@ -1,7 +1,7 @@
 'use client';
 
 import { Product } from '@/lib/db';
-import { addToCart, updateCartItem, getCart } from '@/lib/cart';
+import { addToCart, updateCartItem, removeFromCart, getCart } from '@/lib/cart';
 import { useState, useEffect } from 'react';
 
 interface ProductCardProps {
@@ -24,22 +24,32 @@ export default function ProductCard({ product }: ProductCardProps) {
   }, [product.id]);
 
   const handleQuantityChange = (change: number) => {
-    const newQty = Math.max(1, Math.min(product.stock, quantity + change));
-    setQuantity(newQty);
+    const newQty = quantity + change;
+    
+    // Если количество стало 0 или меньше, удаляем товар из корзины
+    if (newQty <= 0) {
+      removeFromCart(product.id);
+      setQuantity(0);
+      return;
+    }
+    
+    // Ограничиваем максимальным количеством на складе
+    const finalQty = Math.min(product.stock, newQty);
+    setQuantity(finalQty);
     
     const cart = getCart();
     const cartItem = cart.find(item => item.productId === product.id);
     
     if (cartItem) {
       // Товар уже в корзине - обновляем количество
-      updateCartItem(product.id, newQty);
+      updateCartItem(product.id, finalQty);
     } else {
       // Товара нет в корзине - добавляем
       addToCart({
         productId: product.id,
         productName: product.name,
         price: product.price,
-        quantity: newQty,
+        quantity: finalQty,
         unit: product.unit || 'dona',
         image: product.image,
         storeId: product.storeId,
@@ -124,7 +134,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div className="flex items-center bg-white border border-gray-300 rounded-lg overflow-hidden shadow-lg">
               <button
                 onClick={() => handleQuantityChange(-1)}
-                disabled={quantity <= 1 || product.stock === 0}
+                disabled={quantity <= 0 || product.stock === 0}
                 className="px-2 md:px-2.5 py-1 md:py-1.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 font-medium text-sm md:text-base"
               >
                 −
