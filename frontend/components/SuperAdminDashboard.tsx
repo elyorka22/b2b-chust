@@ -25,6 +25,7 @@ export default function SuperAdminDashboard() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showContactPageForm, setShowContactPageForm] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showBotButtonsForm, setShowBotButtonsForm] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -671,6 +672,12 @@ export default function SuperAdminDashboard() {
                 Welcome xabar sozlash
               </button>
               <button
+                onClick={() => setShowBotButtonsForm(true)}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
+              >
+                Bot tugmalari sozlash
+              </button>
+              <button
                 onClick={() => setShowSendMessageForm(true)}
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
               >
@@ -761,6 +768,16 @@ export default function SuperAdminDashboard() {
               onSuccess={() => {
                 setShowWelcomeMessageForm(false);
                 alert('Welcome xabar saqlandi!');
+              }}
+            />
+          )}
+
+          {showBotButtonsForm && (
+            <BotButtonsForm
+              onClose={() => setShowBotButtonsForm(false)}
+              onSuccess={() => {
+                setShowBotButtonsForm(false);
+                alert('Bot tugmalari saqlandi!');
               }}
             />
           )}

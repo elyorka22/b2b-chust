@@ -51,38 +51,93 @@ bot.onText(/\/start/, async (msg) => {
     }
 
     // Получаем welcome message из настроек
+    console.log(`[BOT] Получение welcome message из ${BACKEND_URL}/api/bot/settings/welcome_message`);
     const response = await axios.get(`${BACKEND_URL}/api/bot/settings/welcome_message`);
+    console.log(`[BOT] Ответ от API:`, { status: response.status, data: response.data });
+    
     let welcomeMessage = response.data?.value;
+    console.log(`[BOT] Welcome message из API:`, welcomeMessage);
     
     // Если welcome message не найден или null, используем дефолтное
-    if (!welcomeMessage || welcomeMessage === null) {
+    if (!welcomeMessage || welcomeMessage === null || welcomeMessage === '') {
+      console.log(`[BOT] Welcome message пустой, используем дефолтное сообщение`);
       welcomeMessage = `Salom, ${firstName}! 👋\n\nB2B Chust do'koniga xush kelibsiz!`;
+    }
+    
+    // Получаем тексты кнопок из настроек
+    let botAboutButtonText = 'ℹ️ Bot haqida';
+    let botPartnershipButtonText = '🤝 Hamkorlik';
+    
+    try {
+      const aboutButtonResponse = await axios.get(`${BACKEND_URL}/api/bot/settings/bot_about_button_text`);
+      if (aboutButtonResponse.data?.value) {
+        botAboutButtonText = aboutButtonResponse.data.value;
+      }
+    } catch (error) {
+      console.log(`[BOT] Ошибка получения текста кнопки "Bot haqida":`, error.message);
+    }
+    
+    try {
+      const partnershipButtonResponse = await axios.get(`${BACKEND_URL}/api/bot/settings/bot_partnership_button_text`);
+      if (partnershipButtonResponse.data?.value) {
+        botPartnershipButtonText = partnershipButtonResponse.data.value;
+      }
+    } catch (error) {
+      console.log(`[BOT] Ошибка получения текста кнопки "Hamkorlik":`, error.message);
     }
     
     // Заменяем {name} на имя пользователя, если есть
     const personalizedMessage = welcomeMessage.replace(/{name}/g, firstName);
+    console.log(`[BOT] Отправка сообщения пользователю ${chatId}:`, personalizedMessage);
 
     bot.sendMessage(chatId, personalizedMessage, {
       reply_markup: {
-        inline_keyboard: [[
-          {
-            text: '🛒 Do\'konni ochish',
-            web_app: { url: FRONTEND_URL }
-          }
-        ]]
+        inline_keyboard: [
+          [
+            {
+              text: '🛒 Do\'konni ochish',
+              web_app: { url: FRONTEND_URL }
+            }
+          ],
+          [
+            {
+              text: botAboutButtonText,
+              callback_data: 'bot_about'
+            },
+            {
+              text: botPartnershipButtonText,
+              callback_data: 'bot_partnership'
+            }
+          ]
+        ]
       }
     });
   } catch (error) {
-    console.error('Ошибка получения welcome message:', error);
+    console.error('[BOT] Ошибка получения welcome message:', error.message);
+    console.error('[BOT] URL был:', `${BACKEND_URL}/api/bot/settings/welcome_message`);
+    console.error('[BOT] Полная ошибка:', error.response?.data || error.message);
     // Fallback на дефолтное сообщение
+    console.log(`[BOT] Используем дефолтное сообщение для пользователя ${chatId}`);
     bot.sendMessage(chatId, `Salom, ${firstName}! 👋\n\nB2B Chust do'koniga xush kelibsiz!`, {
       reply_markup: {
-        inline_keyboard: [[
-          {
-            text: '🛒 Do\'konni ochish',
-            web_app: { url: FRONTEND_URL }
-          }
-        ]]
+        inline_keyboard: [
+          [
+            {
+              text: '🛒 Do\'konni ochish',
+              web_app: { url: FRONTEND_URL }
+            }
+          ],
+          [
+            {
+              text: 'ℹ️ Bot haqida',
+              callback_data: 'bot_about'
+            },
+            {
+              text: '🤝 Hamkorlik',
+              callback_data: 'bot_partnership'
+            }
+          ]
+        ]
       }
     });
   }
@@ -229,6 +284,62 @@ bot.on('message', async (msg) => {
         }
       }
     );
+  }
+});
+
+// Обработка callback_query (нажатия на inline кнопки)
+bot.on('callback_query', async (query) => {
+  const chatId = query.message.chat.id;
+  const data = query.data;
+  const messageId = query.message.message_id;
+
+  // Обновляем активность пользователя
+  await updateUserActivity(
+    chatId,
+    query.from.first_name,
+    query.from.last_name,
+    query.from.username
+  );
+
+  try {
+    if (data === 'bot_about') {
+      // Получаем сообщение "Bot haqida" из настроек
+      try {
+        const response = await axios.get(`${BACKEND_URL}/api/bot/settings/bot_about_message`);
+        let message = response.data?.value;
+        
+        if (!message || message === null || message === '') {
+          message = 'Bu bot B2B Chust do\'koni uchun yaratilgan. Bu yerda siz mahsulotlarni ko\'rishingiz va buyurtma berishingiz mumkin.';
+        }
+        
+        bot.answerCallbackQuery(query.id);
+        bot.sendMessage(chatId, message);
+      } catch (error) {
+        console.error('[BOT] Ошибка получения сообщения "Bot haqida":', error.message);
+        bot.answerCallbackQuery(query.id);
+        bot.sendMessage(chatId, 'Bu bot B2B Chust do\'koni uchun yaratilgan. Bu yerda siz mahsulotlarni ko\'rishingiz va buyurtma berishingiz mumkin.');
+      }
+    } else if (data === 'bot_partnership') {
+      // Получаем сообщение "Hamkorlik" из настроек
+      try {
+        const response = await axios.get(`${BACKEND_URL}/api/bot/settings/bot_partnership_message`);
+        let message = response.data?.value;
+        
+        if (!message || message === null || message === '') {
+          message = 'Hamkorlik uchun biz bilan bog\'laning:\n\n📞 Telefon: +998 XX XXX XX XX\n📧 Email: info@example.com\n\nBiz sizning taklifingizni kutamiz!';
+        }
+        
+        bot.answerCallbackQuery(query.id);
+        bot.sendMessage(chatId, message);
+      } catch (error) {
+        console.error('[BOT] Ошибка получения сообщения "Hamkorlik":', error.message);
+        bot.answerCallbackQuery(query.id);
+        bot.sendMessage(chatId, 'Hamkorlik uchun biz bilan bog\'laning:\n\n📞 Telefon: +998 XX XXX XX XX\n📧 Email: info@example.com\n\nBiz sizning taklifingizni kutamiz!');
+      }
+    }
+  } catch (error) {
+    console.error('[BOT] Ошибка обработки callback_query:', error);
+    bot.answerCallbackQuery(query.id, { text: 'Xatolik yuz berdi', show_alert: false });
   }
 });
 
