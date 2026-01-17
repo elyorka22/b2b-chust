@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Product, Order } from '@/lib/db';
-import { productsApi, ordersApi, statsApi, userApi } from '@/lib/api';
+import { productsApi, ordersApi, statsApi, userApi, subscriptionsApi } from '@/lib/api';
 import { getCurrentUserFromToken, getAuthToken } from '@/lib/auth';
 
 interface StoreDashboardProps {
@@ -26,12 +26,15 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
       fetchOrders();
     } else if (activeTab === 'stats') {
       fetchStats();
+    } else if (activeTab === 'subscription') {
+      fetchSubscription();
     }
   }, [activeTab]);
 
   const [telegramChatId, setTelegramChatId] = useState<string>('');
   const [showTelegramSetup, setShowTelegramSetup] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
     // Получаем ID текущего пользователя
@@ -237,6 +240,19 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
               >
                 Hisobot
               </button>
+              <button
+                onClick={() => {
+                  setActiveTab('subscription');
+                  setIsMenuOpen(false);
+                }}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors font-semibold ${
+                  activeTab === 'subscription' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Obuna
+              </button>
             </nav>
           </div>
         </>
@@ -268,6 +284,12 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
             className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'reports' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
           >
             Hisobot
+          </button>
+          <button
+            onClick={() => setActiveTab('subscription')}
+            className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'subscription' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
+          >
+            Obuna
           </button>
         </div>
       </div>
@@ -478,6 +500,92 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
             </div>
           ) : (
             <div className="text-center py-12">Ma'lumotlar yo'q</div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'subscription' && (
+        <div className="space-y-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Obuna ma'lumotlari</h2>
+
+          {loading ? (
+            <p className="text-gray-700 font-medium">Yuklanmoqda...</p>
+          ) : subscription ? (
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border border-gray-200">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+                  <span className="text-gray-700 font-medium">Oylik to'lov:</span>
+                  <span className="text-xl font-bold text-gray-900">
+                    {subscription.subscription_price ? `${subscription.subscription_price.toLocaleString()} so'm` : 'Bepul'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+                  <span className="text-gray-700 font-medium">Balans:</span>
+                  <span className={`text-xl font-bold ${(subscription.subscription_balance || 0) < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                    {subscription.subscription_balance?.toLocaleString() || '0'} so'm
+                  </span>
+                </div>
+                {subscription.subscription_start_date ? (
+                  <>
+                    <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+                      <span className="text-gray-700 font-medium">Boshlanish sanasi:</span>
+                      <span className="text-gray-900 font-semibold">
+                        {new Date(subscription.subscription_start_date).toLocaleDateString('uz-UZ', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                    {subscription.daysRemaining !== null && (
+                      <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+                        <span className="text-gray-700 font-medium">Keyingi to'lov:</span>
+                        <span className="text-gray-900 font-semibold">
+                          {subscription.daysRemaining > 0 
+                            ? `${subscription.daysRemaining} kundan keyin` 
+                            : subscription.daysRemaining === 0
+                            ? 'Bugun'
+                            : 'Kechikkan'}
+                        </span>
+                      </div>
+                    )}
+                    {subscription.nextPaymentDate && (
+                      <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+                        <span className="text-gray-700 font-medium">To'lov sanasi:</span>
+                        <span className="text-gray-900 font-semibold">
+                          {new Date(subscription.nextPaymentDate).toLocaleDateString('uz-UZ', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                    )}
+                    {subscription.monthsSinceStart !== null && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700 font-medium">Faol oylar soni:</span>
+                        <span className="text-gray-900 font-semibold">{subscription.monthsSinceStart}</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p className="text-yellow-800 font-medium">
+                      ⚠️ Obuna hali boshlanmagan. Birinchi mahsulotni qo'shganda obuna avtomatik boshlanadi.
+                    </p>
+                  </div>
+                )}
+                {subscription.isActive && (
+                  <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                    <p className="text-emerald-800 font-medium">
+                      ✅ Obuna faol. Balans manfiy bo'lsa ham, magazin ishlashda davom etadi.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-700 font-medium">Ma'lumotlar topilmadi</p>
           )}
         </div>
       )}
