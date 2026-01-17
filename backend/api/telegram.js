@@ -186,6 +186,7 @@ export async function sendOrderNotification(order, supabaseAdmin) {
     }
 
     // Если store_id нет в заказе, получаем их из товаров в базе
+    let products = null;
     if (storeIds.size === 0 && order.items && Array.isArray(order.items)) {
       console.log('[NOTIFICATION] Получаем store_id из товаров в базе данных');
       const productIds = order.items
@@ -193,15 +194,16 @@ export async function sendOrderNotification(order, supabaseAdmin) {
         .filter(Boolean);
       
       if (productIds.length > 0) {
-        const { data: products, error: productsError } = await supabaseAdmin
+        const { data: productsData, error: productsError } = await supabaseAdmin
           .from('b2b_products')
           .select('id, store_id')
           .in('id', productIds);
         
         if (productsError) {
           console.error('[NOTIFICATION] Ошибка получения товаров:', productsError);
-        } else if (products) {
-          products.forEach(product => {
+        } else if (productsData) {
+          products = productsData;
+          productsData.forEach(product => {
             if (product.store_id) {
               storeIds.add(product.store_id);
               console.log('[NOTIFICATION] Найден store_id из товара:', product.store_id);
