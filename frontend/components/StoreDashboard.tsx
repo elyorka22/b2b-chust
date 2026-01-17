@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Product, Order } from '@/lib/db';
 import { productsApi, ordersApi, statsApi, userApi, subscriptionsApi } from '@/lib/api';
 import { getCurrentUserFromToken, getAuthToken } from '@/lib/auth';
@@ -18,18 +18,6 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    if (activeTab === 'products') {
-      fetchProducts();
-    } else if (activeTab === 'orders') {
-      fetchOrders();
-    } else if (activeTab === 'stats') {
-      fetchStats();
-    } else if (activeTab === 'subscription') {
-      fetchSubscription();
-    }
-  }, [activeTab]);
 
   const [telegramChatId, setTelegramChatId] = useState<string>('');
   const [showTelegramSetup, setShowTelegramSetup] = useState(false);
