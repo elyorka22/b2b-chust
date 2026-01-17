@@ -31,3 +31,6 @@ CREATE POLICY "Anyone can create orders"
 -- который обходит все RLS политики
 
 
+
+
+

@@ -191,3 +191,6 @@ FRONTEND_URL=https://frontend-production-xxxx.up.railway.app
 - Frontend URL нужен для Bot (Web App кнопки)
 
 
+
+
+

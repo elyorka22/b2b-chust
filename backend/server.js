@@ -185,37 +185,6 @@ app.post('/api/products', requireAuth, async (req, res) => {
 
     const store_id = req.user.role === 'magazin' ? req.user.id : storeId || null;
 
-    // Если это магазин и это его первый товар, устанавливаем дату начала подписки
-    if (store_id && req.user.role === 'magazin') {
-      const { data: userProducts } = await supabaseAdmin
-        .from('b2b_products')
-        .select('id')
-        .eq('store_id', store_id)
-        .limit(1);
-
-      if (!userProducts || userProducts.length === 0) {
-        // Это первый товар магазина - устанавливаем дату начала подписки
-        const { data: user } = await supabaseAdmin
-          .from('b2b_users')
-          .select('subscription_start_date, subscription_price, subscription_balance')
-          .eq('id', store_id)
-          .single();
-
-        if (user && !user.subscription_start_date) {
-          const subscriptionPrice = user.subscription_price || 0;
-          await supabaseAdmin
-            .from('b2b_users')
-            .update({
-              subscription_start_date: new Date().toISOString(),
-              subscription_balance: subscriptionPrice, // Начальный баланс = цена подписки
-            })
-            .eq('id', store_id);
-          
-          console.log(`[SUBSCRIPTION] Установлена дата начала подписки для магазина ${store_id}, баланс: ${subscriptionPrice}`);
-        }
-      }
-    }
-
     const insertData = {
       name,
       description,
@@ -434,224 +403,6 @@ app.delete('/api/categories/:id', requireAuth, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('[CATEGORIES] Ошибка удаления категории:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ========== SUBSCRIPTIONS API ==========
-app.get('/api/subscriptions', requireAuth, async (req, res) => {
-  try {
-    if (req.user.role !== 'super-admin') {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-
-    if (!supabaseAdmin) {
-      return res.status(500).json({ error: 'Database not configured' });
-    }
-
-    // Получаем все магазины с информацией о подписке
-    const { data: stores, error } = await supabaseAdmin
-      .from('b2b_users')
-      .select('id, username, store_name, subscription_price, subscription_start_date, subscription_balance, created_at')
-      .eq('role', 'magazin')
-      .order('store_name', { ascending: true });
-
-    if (error) throw error;
-
-    // Вычисляем информацию о подписке для каждого магазина
-    const subscriptions = (stores || []).map(store => {
-      let daysRemaining = null;
-      let nextPaymentDate = null;
-      let monthsSinceStart = null;
-
-      if (store.subscription_start_date) {
-        const startDate = new Date(store.subscription_start_date);
-        const now = new Date();
-        const monthsDiff = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
-        
-        // Следующая дата оплаты - начало следующего месяца от даты начала
-        const nextPayment = new Date(startDate);
-        nextPayment.setMonth(startDate.getMonth() + monthsDiff + 1);
-        nextPayment.setDate(startDate.getDate());
-        
-        const daysUntilNext = Math.ceil((nextPayment.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        
-        daysRemaining = daysUntilNext;
-        nextPaymentDate = nextPayment.toISOString();
-        monthsSinceStart = monthsDiff;
-      }
-
-      return {
-        ...store,
-        daysRemaining,
-        nextPaymentDate,
-        monthsSinceStart,
-      };
-    });
-
-    res.json(subscriptions);
-  } catch (error) {
-    console.error('[SUBSCRIPTIONS] Ошибка получения подписок:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.get('/api/subscriptions/my', requireAuth, async (req, res) => {
-  try {
-    if (req.user.role !== 'magazin') {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-
-    if (!supabaseAdmin) {
-      return res.status(500).json({ error: 'Database not configured' });
-    }
-
-    const { data: store, error } = await supabaseAdmin
-      .from('b2b_users')
-      .select('id, username, store_name, subscription_price, subscription_start_date, subscription_balance, created_at')
-      .eq('id', req.user.id)
-      .single();
-
-    if (error) throw error;
-
-    let daysRemaining = null;
-    let nextPaymentDate = null;
-    let monthsSinceStart = null;
-    let isActive = true; // Подписка всегда активна, даже при отрицательном балансе
-
-    if (store.subscription_start_date) {
-      const startDate = new Date(store.subscription_start_date);
-      const now = new Date();
-      const monthsDiff = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
-      
-      // Следующая дата оплаты - начало следующего месяца от даты начала
-      const nextPayment = new Date(startDate);
-      nextPayment.setMonth(startDate.getMonth() + monthsDiff + 1);
-      nextPayment.setDate(startDate.getDate());
-      
-      const daysUntilNext = Math.ceil((nextPayment.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      
-      daysRemaining = daysUntilNext;
-      nextPaymentDate = nextPayment.toISOString();
-      monthsSinceStart = monthsDiff;
-    }
-
-    res.json({
-      ...store,
-      daysRemaining,
-      nextPaymentDate,
-      monthsSinceStart,
-      isActive,
-    });
-  } catch (error) {
-    console.error('[SUBSCRIPTIONS] Ошибка получения подписки магазина:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/subscriptions/update-monthly', requireAuth, async (req, res) => {
-  try {
-    if (req.user.role !== 'super-admin') {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-
-    if (!supabaseAdmin) {
-      return res.status(500).json({ error: 'Database not configured' });
-    }
-
-    // Получаем все магазины с активными подписками
-    const { data: stores, error } = await supabaseAdmin
-      .from('b2b_users')
-      .select('id, username, store_name, subscription_price, subscription_start_date, subscription_balance')
-      .eq('role', 'magazin')
-      .not('subscription_start_date', 'is', null);
-
-    if (error) throw error;
-
-    const now = new Date();
-    let updatedCount = 0;
-
-    for (const store of stores || []) {
-      if (!store.subscription_start_date) continue;
-
-      const startDate = new Date(store.subscription_start_date);
-      const monthsDiff = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
-      
-      // Проверяем, нужно ли списать за текущий месяц
-      // Списываем каждый месяц начиная с месяца после начала подписки
-      if (monthsDiff >= 0) {
-        const subscriptionPrice = store.subscription_price || 0;
-        const newBalance = (store.subscription_balance || 0) - subscriptionPrice;
-        
-        await supabaseAdmin
-          .from('b2b_users')
-          .update({
-            subscription_balance: newBalance,
-          })
-          .eq('id', store.id);
-        
-        updatedCount++;
-        console.log(`[SUBSCRIPTION] Обновлен баланс для магазина ${store.store_name}: ${store.subscription_balance} -> ${newBalance}`);
-      }
-    }
-
-    res.json({ success: true, updatedCount, message: `Обновлено подписок: ${updatedCount}` });
-  } catch (error) {
-    console.error('[SUBSCRIPTIONS] Ошибка обновления подписок:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.patch('/api/subscriptions/:storeId/balance', requireAuth, async (req, res) => {
-  try {
-    if (req.user.role !== 'super-admin') {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-
-    if (!supabaseAdmin) {
-      return res.status(500).json({ error: 'Database not configured' });
-    }
-
-    const { storeId } = req.params;
-    const { amount } = req.body;
-
-    if (!amount || isNaN(parseFloat(amount))) {
-      return res.status(400).json({ error: 'Invalid amount' });
-    }
-
-    // Получаем текущий баланс магазина
-    const { data: store, error: fetchError } = await supabaseAdmin
-      .from('b2b_users')
-      .select('id, store_name, subscription_balance')
-      .eq('id', storeId)
-      .eq('role', 'magazin')
-      .single();
-
-    if (fetchError || !store) {
-      return res.status(404).json({ error: 'Store not found' });
-    }
-
-    const newBalance = (store.subscription_balance || 0) + parseFloat(amount);
-
-    // Обновляем баланс
-    const { data: updatedStore, error: updateError } = await supabaseAdmin
-      .from('b2b_users')
-      .update({ subscription_balance: newBalance })
-      .eq('id', storeId)
-      .select('id, store_name, subscription_balance, subscription_price, subscription_start_date')
-      .single();
-
-    if (updateError) throw updateError;
-
-    console.log(`[SUBSCRIPTION] Баланс магазина ${store.store_name} обновлен: ${store.subscription_balance} -> ${newBalance} (добавлено: ${amount})`);
-
-    res.json({
-      success: true,
-      store: updatedStore,
-      message: `Баланс успешно обновлен: ${store.subscription_balance || 0} -> ${newBalance}`,
-    });
-  } catch (error) {
-    console.error('[SUBSCRIPTIONS] Ошибка обновления баланса подписки:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1043,7 +794,7 @@ app.post('/api/users', requireAuth, async (req, res) => {
       return res.status(500).json({ error: 'Database not configured' });
     }
 
-    const { username, password, role, storeName, subscriptionPrice } = req.body;
+    const { username, password, role, storeName } = req.body;
 
     if (!username || !password || !role) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -1063,8 +814,6 @@ app.post('/api/users', requireAuth, async (req, res) => {
         password_hash: hashedPassword,
         role,
         store_name: role === 'magazin' ? (storeName || null) : null,
-        subscription_price: role === 'magazin' ? (subscriptionPrice ? parseFloat(subscriptionPrice) : 0) : null,
-        subscription_balance: role === 'magazin' ? (subscriptionPrice ? parseFloat(subscriptionPrice) : 0) : null,
       })
       .select()
       .single();

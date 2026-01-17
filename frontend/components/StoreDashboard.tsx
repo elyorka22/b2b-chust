@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Product, Order } from '@/lib/db';
-import { productsApi, ordersApi, statsApi, userApi, subscriptionsApi } from '@/lib/api';
+import { productsApi, ordersApi, statsApi, userApi } from '@/lib/api';
 import { getCurrentUserFromToken, getAuthToken } from '@/lib/auth';
 
 interface StoreDashboardProps {
@@ -10,7 +10,7 @@ interface StoreDashboardProps {
 }
 
 export default function StoreDashboard({ storeName }: StoreDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'stats' | 'reports' | 'subscription'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'stats' | 'reports'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -22,7 +22,6 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
   const [telegramChatId, setTelegramChatId] = useState<string>('');
   const [showTelegramSetup, setShowTelegramSetup] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
     // Получаем ID текущего пользователя
@@ -69,17 +68,6 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
     }
   };
 
-  const fetchSubscription = async () => {
-    setLoading(true);
-    try {
-      const data = await subscriptionsApi.getMy();
-      setSubscription(data);
-    } catch (error) {
-      console.error('Obunani yuklashda xatolik:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const downloadReport = async (period: 'week' | 'month') => {
     try {
@@ -284,12 +272,6 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
             className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'reports' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
           >
             Hisobot
-          </button>
-          <button
-            onClick={() => setActiveTab('subscription')}
-            className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'subscription' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
-          >
-            Obuna
           </button>
         </div>
       </div>

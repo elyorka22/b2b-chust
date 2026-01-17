@@ -26,3 +26,6 @@ CREATE POLICY "Bot users are accessible by service role"
   USING (true)
   WITH CHECK (true);
 
+
+
+

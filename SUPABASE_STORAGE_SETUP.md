@@ -78,3 +78,6 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 - Создайте bucket вручную через Supabase Dashboard
 - Или используйте локальное хранилище (fallback работает автоматически)
 
+
+
+

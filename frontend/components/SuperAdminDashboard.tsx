@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Product, Order } from '@/lib/db';
-import { productsApi, ordersApi, statsApi, usersApi, telegramApi, botSettingsApi, userApi, contactPageApi, categoriesApi, subscriptionsApi } from '@/lib/api';
+import { productsApi, ordersApi, statsApi, usersApi, telegramApi, botSettingsApi, userApi, contactPageApi, categoriesApi } from '@/lib/api';
 import { getCurrentUserFromToken } from '@/lib/auth';
 
 export default function SuperAdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'stats' | 'telegram' | 'settings' | 'subscriptions'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'stats' | 'telegram' | 'settings'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -28,9 +28,6 @@ export default function SuperAdminDashboard() {
   const [showBotButtonsForm, setShowBotButtonsForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
-  const [showBalanceForm, setShowBalanceForm] = useState(false);
-  const [selectedStore, setSelectedStore] = useState<any>(null);
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -45,8 +42,6 @@ export default function SuperAdminDashboard() {
       fetchTelegramStats();
     } else if (activeTab === 'users') {
       fetchUsers();
-    } else if (activeTab === 'subscriptions') {
-      fetchSubscriptions();
     }
   }, [activeTab]);
 
@@ -139,17 +134,6 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  const fetchSubscriptions = async () => {
-    setLoading(true);
-    try {
-      const data = await subscriptionsApi.getAll();
-      setSubscriptions(data);
-    } catch (error) {
-      console.error('Obunalarni yuklashda xatolik:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDeleteProduct = async (id: string) => {
     if (!confirm('Mahsulotni o\'chirish?')) return;
@@ -325,12 +309,6 @@ export default function SuperAdminDashboard() {
             className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'telegram' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
           >
             Telegram Bot
-          </button>
-          <button
-            onClick={() => setActiveTab('subscriptions')}
-            className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'subscriptions' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
-          >
-            Obunalar
           </button>
           <button
             onClick={() => setActiveTab('settings')}
@@ -863,109 +841,6 @@ export default function SuperAdminDashboard() {
         </div>
       )}
 
-      {activeTab === 'subscriptions' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-900">Obunalarni boshqarish</h2>
-            <button
-              onClick={async () => {
-                try {
-                  const result = await subscriptionsApi.updateMonthly();
-                  alert(result.message || 'Obunalar yangilandi');
-                  fetchSubscriptions();
-                } catch (error: any) {
-                  alert(error.response?.data?.error || 'Xatolik yuz berdi');
-                }
-              }}
-              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium"
-            >
-              Oylik to'lovni yangilash
-            </button>
-          </div>
-
-          {loading ? (
-            <p className="text-gray-700 font-medium">Yuklanmoqda...</p>
-          ) : subscriptions.length === 0 ? (
-            <p className="text-gray-700 font-medium">Magazinlar topilmadi</p>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {subscriptions.map((sub: any) => (
-                <div key={sub.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">{sub.store_name || sub.username}</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-700 font-medium">Oylik to'lov:</span>
-                      <span className="text-gray-900 font-semibold">
-                        {sub.subscription_price ? `${sub.subscription_price.toLocaleString()} so'm` : 'Bepul'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-700 font-medium">Balans:</span>
-                      <span className={`font-semibold ${(sub.subscription_balance || 0) < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                        {sub.subscription_balance?.toLocaleString() || '0'} so'm
-                      </span>
-                    </div>
-                    {sub.subscription_start_date && (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-gray-700 font-medium">Boshlanish sanasi:</span>
-                          <span className="text-gray-900 font-medium">
-                            {new Date(sub.subscription_start_date).toLocaleDateString('uz-UZ')}
-                          </span>
-                        </div>
-                        {sub.daysRemaining !== null && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-700 font-medium">Keyingi to'lov:</span>
-                            <span className="text-gray-900 font-medium">
-                              {sub.daysRemaining > 0 ? `${sub.daysRemaining} kun` : 'Bugun'}
-                            </span>
-                          </div>
-                        )}
-                        {sub.monthsSinceStart !== null && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-700 font-medium">Oylar soni:</span>
-                            <span className="text-gray-900 font-medium">{sub.monthsSinceStart}</span>
-                          </div>
-                        )}
-                      </>
-                    )}
-                    {!sub.subscription_start_date && (
-                      <p className="text-gray-500 text-sm font-medium">Hali birinchi mahsulot qo'shilmagan</p>
-                    )}
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <button
-                      onClick={() => {
-                        setSelectedStore(sub);
-                        setShowBalanceForm(true);
-                      }}
-                      className="w-full px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all font-medium"
-                    >
-                      Balansni yangilash
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {showBalanceForm && selectedStore && (
-        <BalanceUpdateForm
-          store={selectedStore}
-          onClose={() => {
-            setShowBalanceForm(false);
-            setSelectedStore(null);
-          }}
-          onSuccess={() => {
-            setShowBalanceForm(false);
-            setSelectedStore(null);
-            fetchSubscriptions();
-          }}
-        />
-      )}
-
       {activeTab === 'settings' && (
         <div>
           <div className="flex justify-between items-center mb-4">
@@ -1416,7 +1291,6 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
     password: '',
     role: 'magazin' as 'magazin' | 'super-admin',
     storeName: '',
-    subscriptionPrice: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 

@@ -127,11 +127,4 @@ export const categoriesApi = {
   delete: (id: string) => api.delete(`/api/categories/${id}`).then(res => res.data),
 };
 
-// Subscriptions API
-export const subscriptionsApi = {
-  getAll: () => api.get('/api/subscriptions').then(res => res.data),
-  getMy: () => api.get('/api/subscriptions/my').then(res => res.data),
-  updateMonthly: () => api.post('/api/subscriptions/update-monthly').then(res => res.data),
-  updateBalance: (storeId: string, amount: number) => api.patch(`/api/subscriptions/${storeId}/balance`, { amount }).then(res => res.data),
-};
 
