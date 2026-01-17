@@ -343,13 +343,13 @@ app.post('/api/orders', async (req, res) => {
       return res.status(500).json({ error: 'Database not configured' });
     }
 
-    const { phone, address, items } = req.body;
+    const { phone, address, telegramChatId, items } = req.body;
 
     if (!phone || !address || !items || items.length === 0) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    console.log('[ORDER] Создание заказа:', { phone, address, itemsCount: items.length });
+    console.log('[ORDER] Создание заказа:', { phone, address, telegramChatId, itemsCount: items.length });
     console.log('[ORDER] Товары в заказе:', items.map(item => ({
       product_id: item.product_id,
       product_name: item.product_name,
@@ -364,6 +364,7 @@ app.post('/api/orders', async (req, res) => {
       .insert({
         phone,
         address,
+        telegram_chat_id: telegramChatId ? parseInt(telegramChatId) : null,
         items,
         total,
         status: 'pending',

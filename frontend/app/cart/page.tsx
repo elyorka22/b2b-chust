@@ -12,6 +12,7 @@ export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [telegramChatId, setTelegramChatId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCustomer, setIsCustomer] = useState(false);
   const [customerData, setCustomerData] = useState<any>(null);
@@ -69,6 +70,7 @@ export default function CartPage() {
         body: JSON.stringify({
           phone,
           address,
+          telegramChatId: telegramChatId || null,
           items: orderItems,
         }),
       });
@@ -206,6 +208,21 @@ export default function CartPage() {
                       rows={4}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Telegram Chat ID (ixtiyoriy)
+                    </label>
+                    <input
+                      type="text"
+                      value={telegramChatId}
+                      onChange={(e) => setTelegramChatId(e.target.value)}
+                      placeholder="123456789"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Buyurtma holati haqida xabar olish uchun Telegram Chat ID ni kiriting. Chat ID ni olish uchun botga "Mening Chat ID" tugmasini bosing.
+                    </p>
                   </div>
                   <button
                     type="submit"

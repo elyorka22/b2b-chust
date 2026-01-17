@@ -115,6 +115,11 @@ bot.onText(/\/start/, async (msg) => {
             {
               text: botPartnershipButtonText
             }
+          ],
+          [
+            {
+              text: '🆔 Mening Chat ID'
+            }
           ]
         ],
         resize_keyboard: true,
@@ -151,6 +156,11 @@ bot.onText(/\/start/, async (msg) => {
             },
             {
               text: '🤝 Hamkorlik'
+            }
+          ],
+          [
+            {
+              text: '🆔 Mening Chat ID'
             }
           ]
         ],
@@ -306,7 +316,19 @@ bot.on('message', async (msg) => {
   }
 
   // Обработка нажатий на reply keyboard кнопки
-  if (text === botAboutButtonText) {
+  if (text === '🆔 Mening Chat ID' || text === 'Mening Chat ID') {
+    // Отправляем Chat ID отдельно (для легкого копирования)
+    bot.sendMessage(chatId, String(chatId));
+    
+    // Отправляем подсказку отдельным сообщением
+    setTimeout(() => {
+      bot.sendMessage(chatId, 
+        '📋 Bu Chat ID ni nusxalab oling va buyurtma berishda "Telegram Chat ID" maydoniga kiriting.\n\n' +
+        '✅ Shunda siz buyurtma holati haqida xabar olasiz.'
+      );
+    }, 500);
+    return;
+  } else if (text === botAboutButtonText) {
     // Получаем сообщение "Bot haqida" из настроек
     try {
       const response = await axios.get(`${BACKEND_URL}/api/bot/settings/bot_about_message`);
