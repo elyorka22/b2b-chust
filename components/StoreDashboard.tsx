@@ -2,19 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import { Product, Order } from '@/lib/db';
+import { statsApi, subscriptionsApi } from '@/lib/api';
 
 interface StoreDashboardProps {
   storeName?: string;
 }
 
 export default function StoreDashboard({ storeName }: StoreDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'stats'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'stats' | 'reports' | 'subscription'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [salesStats, setSalesStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -23,6 +26,9 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
       fetchOrders();
     } else if (activeTab === 'stats') {
       fetchStats();
+      fetchSalesStats();
+    } else if (activeTab === 'subscription') {
+      fetchSubscription();
     }
   }, [activeTab]);
 
@@ -52,11 +58,32 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/stats');
-      const data = await response.json();
+      setLoading(true);
+      const data = await statsApi.get();
       setStats(data);
     } catch (error) {
       console.error('Statistikani yuklashda xatolik:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSalesStats = async () => {
+    try {
+      const data = await statsApi.getSales();
+      setSalesStats(data);
+    } catch (error) {
+      console.error('Statistikani yuklashda xatolik:', error);
+    }
+  };
+
+  const fetchSubscription = async () => {
+    setLoading(true);
+    try {
+      const data = await subscriptionsApi.getMy();
+      setSubscription(data);
+    } catch (error) {
+      console.error('Obunani yuklashda xatolik:', error);
     } finally {
       setLoading(false);
     }
@@ -118,6 +145,12 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
           className={`px-4 py-2 transition-colors ${activeTab === 'stats' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
         >
           Statistika
+        </button>
+        <button
+          onClick={() => setActiveTab('subscription')}
+          className={`px-4 py-2 transition-colors ${activeTab === 'subscription' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'hover:text-indigo-600'}`}
+        >
+          Obuna
         </button>
       </div>
 
@@ -244,28 +277,131 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
           {loading ? (
             <div className="text-center py-12">Yuklanmoqda...</div>
           ) : stats ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Jami buyurtmalar</h3>
-                <p className="text-3xl font-bold">{stats.orders.total}</p>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-gray-600 mb-2">Jami buyurtmalar</h3>
+                  <p className="text-3xl font-bold">{stats.orders.total}</p>
+                </div>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-gray-600 mb-2">Kutayapti</h3>
+                  <p className="text-3xl font-bold text-amber-600">{stats.orders.pending}</p>
+                </div>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-gray-600 mb-2">Daromad</h3>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{stats.revenue.total.toLocaleString()} so'm</p>
+                </div>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-gray-600 mb-2">Mahsulotlar</h3>
+                  <p className="text-3xl font-bold">{stats.products.total}</p>
+                </div>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-gray-600 mb-2">Past qoldiq</h3>
+                  <p className="text-3xl font-bold text-rose-600">{stats.products.lowStock}</p>
+                </div>
               </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Kutayapti</h3>
-                <p className="text-3xl font-bold text-amber-600">{stats.orders.pending}</p>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Daromad</h3>
-                <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{stats.revenue.total.toLocaleString()} so'm</p>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Mahsulotlar</h3>
-                <p className="text-3xl font-bold">{stats.products.total}</p>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-600 mb-2">Past qoldiq</h3>
-                <p className="text-3xl font-bold text-rose-600">{stats.products.lowStock}</p>
-              </div>
-            </div>
+
+              {/* Статистика продаж */}
+              {salesStats && (
+                <div className="space-y-6">
+                  <h3 className="text-xl font-semibold mb-4">Eng ko'p sotilgan mahsulotlar</h3>
+                  
+                  {/* За неделю */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h4 className="text-lg font-semibold mb-4 text-indigo-600">Hafta bo'yicha (miqdor)</h4>
+                      {salesStats.week?.byQuantity && salesStats.week.byQuantity.length > 0 ? (
+                        <div className="space-y-3">
+                          {salesStats.week.byQuantity.map((item: any, index: number) => (
+                            <div key={item.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg font-bold text-indigo-600 w-8">{index + 1}</span>
+                                <div>
+                                  <p className="font-medium text-gray-900">{item.productName}</p>
+                                  <p className="text-sm text-gray-500">Miqdor: {item.weekQuantity.toLocaleString()}</p>
+                                </div>
+                              </div>
+                              <p className="text-sm font-semibold text-emerald-600">{item.weekRevenue.toLocaleString()} so'm</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-4">Hafta davomida sotilgan mahsulotlar yo'q</p>
+                      )}
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h4 className="text-lg font-semibold mb-4 text-purple-600">Hafta bo'yicha (daromad)</h4>
+                      {salesStats.week?.byRevenue && salesStats.week.byRevenue.length > 0 ? (
+                        <div className="space-y-3">
+                          {salesStats.week.byRevenue.map((item: any, index: number) => (
+                            <div key={item.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg font-bold text-purple-600 w-8">{index + 1}</span>
+                                <div>
+                                  <p className="font-medium text-gray-900">{item.productName}</p>
+                                  <p className="text-sm text-gray-500">Daromad: {item.weekRevenue.toLocaleString()} so'm</p>
+                                </div>
+                              </div>
+                              <p className="text-sm font-semibold text-gray-600">{item.weekQuantity.toLocaleString()} dona</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-4">Hafta davomida sotilgan mahsulotlar yo'q</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* За месяц */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h4 className="text-lg font-semibold mb-4 text-emerald-600">Oy bo'yicha (miqdor)</h4>
+                      {salesStats.month?.byQuantity && salesStats.month.byQuantity.length > 0 ? (
+                        <div className="space-y-3">
+                          {salesStats.month.byQuantity.map((item: any, index: number) => (
+                            <div key={item.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg font-bold text-emerald-600 w-8">{index + 1}</span>
+                                <div>
+                                  <p className="font-medium text-gray-900">{item.productName}</p>
+                                  <p className="text-sm text-gray-500">Miqdor: {item.monthQuantity.toLocaleString()}</p>
+                                </div>
+                              </div>
+                              <p className="text-sm font-semibold text-emerald-600">{item.monthRevenue.toLocaleString()} so'm</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-4">Oy davomida sotilgan mahsulotlar yo'q</p>
+                      )}
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h4 className="text-lg font-semibold mb-4 text-teal-600">Oy bo'yicha (daromad)</h4>
+                      {salesStats.month?.byRevenue && salesStats.month.byRevenue.length > 0 ? (
+                        <div className="space-y-3">
+                          {salesStats.month.byRevenue.map((item: any, index: number) => (
+                            <div key={item.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg font-bold text-teal-600 w-8">{index + 1}</span>
+                                <div>
+                                  <p className="font-medium text-gray-900">{item.productName}</p>
+                                  <p className="text-sm text-gray-500">Daromad: {item.monthRevenue.toLocaleString()} so'm</p>
+                                </div>
+                              </div>
+                              <p className="text-sm font-semibold text-gray-600">{item.monthQuantity.toLocaleString()} dona</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-4">Oy davomida sotilgan mahsulotlar yo'q</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12">Ma'lumotlar yo'q</div>
           )}
