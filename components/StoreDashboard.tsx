@@ -19,19 +19,6 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
 
-  useEffect(() => {
-    if (activeTab === 'products') {
-      fetchProducts();
-    } else if (activeTab === 'orders') {
-      fetchOrders();
-    } else if (activeTab === 'stats') {
-      fetchStats();
-      fetchSalesStats();
-    } else if (activeTab === 'subscription') {
-      fetchSubscription();
-    }
-  }, [activeTab]);
-
   const fetchProducts = async () => {
     try {
       const response = await fetch('/api/products');
@@ -88,6 +75,19 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (activeTab === 'products') {
+      fetchProducts();
+    } else if (activeTab === 'orders') {
+      fetchOrders();
+    } else if (activeTab === 'stats') {
+      fetchStats();
+      fetchSalesStats();
+    } else if (activeTab === 'subscription') {
+      fetchSubscription();
+    }
+  }, [activeTab]);
 
   const handleDeleteProduct = async (id: string) => {
     if (!confirm('Mahsulotni o\'chirish?')) return;
