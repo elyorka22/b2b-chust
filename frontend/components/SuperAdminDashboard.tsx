@@ -184,14 +184,14 @@ export default function SuperAdminDashboard() {
 
       {activeTab === 'products' && (
         <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">Mahsulotlarni boshqarish</h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Mahsulotlarni boshqarish</h2>
             <button
               onClick={() => {
                 setEditingProduct(null);
                 setShowProductForm(true);
               }}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all text-sm sm:text-base w-full sm:w-auto"
             >
               Mahsulot qo'shish
             </button>
@@ -213,28 +213,28 @@ export default function SuperAdminDashboard() {
           {loading ? (
             <div className="text-center py-12">Yuklanmoqda...</div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {products.map((product) => (
-                <div key={product.id} className="bg-white rounded-lg shadow-md p-4">
-                  <h3 className="text-lg font-semibold mb-2 text-gray-900">{product.name}</h3>
-                  <p className="text-gray-800 text-sm mb-2">{product.description}</p>
-                  <p className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                <div key={product.id} className="bg-white rounded-lg shadow-md p-3 sm:p-4">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-900">{product.name}</h3>
+                  <p className="text-gray-800 text-xs sm:text-sm mb-2 line-clamp-2">{product.description}</p>
+                  <p className="text-lg sm:text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
                     {product.price.toLocaleString()} so'm/{product.unit || 'dona'}
                   </p>
-                  <p className="text-sm text-gray-800 font-medium mb-4">Mavjud: {product.stock}</p>
+                  <p className="text-xs sm:text-sm text-gray-800 font-medium mb-3 sm:mb-4">Mavjud: {product.stock}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
                         setEditingProduct(product);
                         setShowProductForm(true);
                       }}
-                      className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-1 rounded-lg text-sm hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
+                      className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
                     >
                       Tahrirlash
                     </button>
                     <button
                       onClick={() => handleDeleteProduct(product.id)}
-                      className="flex-1 bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700"
+                      className="flex-1 bg-red-600 text-white px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm hover:bg-red-700"
                     >
                       O'chirish
                     </button>
@@ -248,22 +248,22 @@ export default function SuperAdminDashboard() {
 
       {activeTab === 'orders' && (
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Buyurtmalar</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Buyurtmalar</h2>
           {loading ? (
             <div className="text-center py-12">Yuklanmoqda...</div>
           ) : (
             <div className="space-y-4">
               {orders.map((order) => (
-                <div key={order.id} className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Buyurtma #{order.id}</h3>
-                      <p className="text-sm text-gray-800">
+                <div key={order.id} className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-3 sm:gap-0 mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">Buyurtma #{order.id}</h3>
+                      <p className="text-xs sm:text-sm text-gray-800">
                         {new Date(order.createdAt).toLocaleString('uz-UZ')}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <span className={`px-3 py-1 rounded text-sm ${
+                    <div className="text-left sm:text-right w-full sm:w-auto">
+                      <span className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm inline-block ${
                         order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         order.status === 'processing' ? 'bg-indigo-100 text-indigo-800' :
                         order.status === 'completed' ? 'bg-green-100 text-green-800' :
@@ -273,16 +273,16 @@ export default function SuperAdminDashboard() {
                          order.status === 'processing' ? 'Qayta ishlanmoqda' :
                          order.status === 'completed' ? 'Yakunlangan' : 'Bekor qilindi'}
                       </span>
-                      <p className="text-xl font-bold mt-2">{order.total.toLocaleString()} so'm</p>
+                      <p className="text-lg sm:text-xl font-bold mt-2">{order.total.toLocaleString()} so'm</p>
                     </div>
                   </div>
-                  <div className="mb-4">
-                    <p><strong>Telefon:</strong> {order.phone}</p>
+                  <div className="mb-4 text-sm sm:text-base">
+                    <p className="mb-1"><strong>Telefon:</strong> {order.phone}</p>
                     <p><strong>Manzil:</strong> {order.address}</p>
                   </div>
                   <div className="mb-4">
-                    <h4 className="font-medium mb-2">Mahsulotlar:</h4>
-                    <ul className="list-disc list-inside space-y-1">
+                    <h4 className="font-medium mb-2 text-sm sm:text-base">Mahsulotlar:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm">
                       {order.items.map((item, idx) => (
                         <li key={idx}>
                           {item.productName} - {item.quantity} {item.unit || 'dona'} × {item.price.toLocaleString()} so'm/{item.unit || 'dona'}
@@ -290,11 +290,11 @@ export default function SuperAdminDashboard() {
                       ))}
                     </ul>
                   </div>
-                  <div className="flex gap-2 mt-4">
+                  <div className="flex flex-col sm:flex-row gap-2 mt-4">
                     {order.status === 'pending' && (
                       <button
                         onClick={() => updateOrderStatus(order.id, 'processing')}
-                        className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                        className="flex-1 px-3 sm:px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all font-semibold text-sm sm:text-base"
                       >
                         ✅ Buyurtma qabul qilindi
                       </button>
@@ -302,7 +302,7 @@ export default function SuperAdminDashboard() {
                     {order.status === 'processing' && (
                       <button
                         onClick={() => updateOrderStatus(order.id, 'completed')}
-                        className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                        className="flex-1 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all font-semibold text-sm sm:text-base"
                       >
                         🚚 Yetkazildi
                       </button>
@@ -310,13 +310,13 @@ export default function SuperAdminDashboard() {
                     {order.status !== 'cancelled' && order.status !== 'completed' && (
                       <button
                         onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                        className="px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-md hover:shadow-lg transition-all font-semibold text-sm sm:text-base"
                       >
                         Bekor qilish
                       </button>
                     )}
                     {order.status === 'completed' && (
-                      <div className="flex-1 px-4 py-2 bg-green-100 text-green-800 rounded-lg text-center font-semibold">
+                      <div className="flex-1 px-3 sm:px-4 py-2 bg-green-100 text-green-800 rounded-lg text-center font-semibold text-sm sm:text-base">
                         ✅ Yakunlangan
                       </div>
                     )}

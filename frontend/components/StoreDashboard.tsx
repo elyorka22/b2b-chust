@@ -140,25 +140,25 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
   };
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-2">Magazin paneli</h1>
+    <div className="w-full">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 text-gray-900">Magazin paneli</h1>
       {storeName && (
-        <p className="text-gray-900 mb-6 font-semibold">Magazin: {storeName}</p>
+        <p className="text-gray-900 mb-4 sm:mb-6 font-semibold text-sm sm:text-base">Magazin: {storeName}</p>
       )}
 
       {/* Telegram Chat ID настройка */}
       {currentUserId && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="font-semibold text-blue-900 mb-1">Telegram xabarnomalar</h3>
-              <p className="text-sm text-blue-700">
+        <div className="mb-4 sm:mb-6 bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+            <div className="flex-1">
+              <h3 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Telegram xabarnomalar</h3>
+              <p className="text-xs sm:text-sm text-blue-700">
                 Yangi buyurtmalar haqida xabar olish uchun Telegram Chat ID ni kiriting
               </p>
             </div>
             <button
               onClick={() => setShowTelegramSetup(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all text-sm"
+              className="bg-blue-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-blue-700 transition-all text-xs sm:text-sm whitespace-nowrap"
             >
               {telegramChatId ? 'O\'zgartirish' : 'Sozlash'}
             </button>
@@ -179,43 +179,45 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
         />
       )}
 
-      <div className="mb-6 flex gap-2 border-b">
-        <button
-          onClick={() => setActiveTab('products')}
-          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
-        >
-          Mahsulotlar
-        </button>
-        <button
-          onClick={() => setActiveTab('orders')}
-          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'orders' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
-        >
-          Buyurtmalar
-        </button>
-        <button
-          onClick={() => setActiveTab('stats')}
-          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'stats' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
-        >
-          Statistika
-        </button>
-        <button
-          onClick={() => setActiveTab('reports')}
-          className={`px-4 py-2 transition-colors font-semibold ${activeTab === 'reports' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
-        >
-          Hisobot
-        </button>
+      <div className="mb-4 sm:mb-6 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex gap-2 border-b min-w-max sm:min-w-0">
+          <button
+            onClick={() => setActiveTab('products')}
+            className={`px-2 sm:px-4 py-2 transition-colors font-semibold text-xs sm:text-sm whitespace-nowrap ${activeTab === 'products' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
+          >
+            Mahsulotlar
+          </button>
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`px-2 sm:px-4 py-2 transition-colors font-semibold text-xs sm:text-sm whitespace-nowrap ${activeTab === 'orders' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
+          >
+            Buyurtmalar
+          </button>
+          <button
+            onClick={() => setActiveTab('stats')}
+            className={`px-2 sm:px-4 py-2 transition-colors font-semibold text-xs sm:text-sm whitespace-nowrap ${activeTab === 'stats' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
+          >
+            Statistika
+          </button>
+          <button
+            onClick={() => setActiveTab('reports')}
+            className={`px-2 sm:px-4 py-2 transition-colors font-semibold text-xs sm:text-sm whitespace-nowrap ${activeTab === 'reports' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-900 hover:text-indigo-600'}`}
+          >
+            Hisobot
+          </button>
+        </div>
       </div>
 
       {activeTab === 'products' && (
         <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">Mahsulotlarni boshqarish</h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Mahsulotlarni boshqarish</h2>
             <button
               onClick={() => {
                 setEditingProduct(null);
                 setShowProductForm(true);
               }}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all text-sm sm:text-base w-full sm:w-auto"
             >
               Mahsulot qo'shish
             </button>
@@ -237,15 +239,15 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
           {loading ? (
             <div className="text-center py-12">Yuklanmoqda...</div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {products.map((product) => (
-                <div key={product.id} className="bg-white rounded-lg shadow-md p-4">
-                  <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-                  <p className="text-gray-800 text-sm mb-2">{product.description}</p>
-                  <p className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                <div key={product.id} className="bg-white rounded-lg shadow-md p-3 sm:p-4">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-900">{product.name}</h3>
+                  <p className="text-gray-800 text-xs sm:text-sm mb-2 line-clamp-2">{product.description}</p>
+                  <p className="text-lg sm:text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
                     {product.price.toLocaleString()} so'm/{product.unit || 'dona'}
                   </p>
-                  <p className="text-sm text-gray-800 font-medium mb-4">
+                  <p className="text-xs sm:text-sm text-gray-800 font-medium mb-3 sm:mb-4">
                     Mavjud: {product.stock}
                   </p>
                   <div className="flex gap-2">
@@ -254,13 +256,13 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
                         setEditingProduct(product);
                         setShowProductForm(true);
                       }}
-                      className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-1 rounded-lg text-sm hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
+                      className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
                     >
                       Tahrirlash
                     </button>
                     <button
                       onClick={() => handleDeleteProduct(product.id)}
-                      className="flex-1 bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700"
+                      className="flex-1 bg-red-600 text-white px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm hover:bg-red-700"
                     >
                       O'chirish
                     </button>
@@ -274,22 +276,22 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
 
       {activeTab === 'orders' && (
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Buyurtmalar</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Buyurtmalar</h2>
           {loading ? (
             <div className="text-center py-12">Yuklanmoqda...</div>
           ) : (
             <div className="space-y-4">
               {orders.map((order) => (
-                <div key={order.id} className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Buyurtma #{order.id}</h3>
-                      <p className="text-sm text-gray-800">
+                <div key={order.id} className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-3 sm:gap-0 mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">Buyurtma #{order.id}</h3>
+                      <p className="text-xs sm:text-sm text-gray-800">
                         {new Date(order.createdAt).toLocaleString('uz-UZ')}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <span className={`px-3 py-1 rounded text-sm ${
+                    <div className="text-left sm:text-right w-full sm:w-auto">
+                      <span className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm inline-block ${
                         order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         order.status === 'processing' ? 'bg-indigo-100 text-indigo-800' :
                         order.status === 'completed' ? 'bg-green-100 text-green-800' :
@@ -299,16 +301,16 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
                          order.status === 'processing' ? 'Qayta ishlanmoqda' :
                          order.status === 'completed' ? 'Yakunlangan' : 'Bekor qilindi'}
                       </span>
-                      <p className="text-xl font-bold mt-2">{order.total.toLocaleString()} so'm</p>
+                      <p className="text-lg sm:text-xl font-bold mt-2">{order.total.toLocaleString()} so'm</p>
                     </div>
                   </div>
-                  <div className="mb-4">
-                    <p><strong>Telefon:</strong> {order.phone}</p>
+                  <div className="mb-4 text-sm sm:text-base">
+                    <p className="mb-1"><strong>Telefon:</strong> {order.phone}</p>
                     <p><strong>Manzil:</strong> {order.address}</p>
                   </div>
                   <div className="mb-4">
-                    <h4 className="font-medium mb-2">Mahsulotlar:</h4>
-                    <ul className="list-disc list-inside space-y-1">
+                    <h4 className="font-medium mb-2 text-sm sm:text-base">Mahsulotlar:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm">
                       {order.items.map((item, idx) => (
                         <li key={idx}>
                           {item.productName} - {item.quantity} {item.unit || 'dona'} × {item.price.toLocaleString()} so'm/{item.unit || 'dona'}
@@ -316,11 +318,11 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
                       ))}
                     </ul>
                   </div>
-                  <div className="flex gap-2 mt-4">
+                  <div className="flex flex-col sm:flex-row gap-2 mt-4">
                     {order.status === 'pending' && (
                       <button
                         onClick={() => updateOrderStatus(order.id, 'processing')}
-                        className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                        className="flex-1 px-3 sm:px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all font-semibold text-sm sm:text-base"
                       >
                         ✅ Buyurtma qabul qilindi
                       </button>
@@ -328,7 +330,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
                     {order.status === 'processing' && (
                       <button
                         onClick={() => updateOrderStatus(order.id, 'completed')}
-                        className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                        className="flex-1 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all font-semibold text-sm sm:text-base"
                       >
                         🚚 Yetkazildi
                       </button>
@@ -336,7 +338,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
                     {order.status !== 'cancelled' && order.status !== 'completed' && (
                       <button
                         onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                        className="px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-md hover:shadow-lg transition-all font-semibold text-sm sm:text-base"
                       >
                         Bekor qilish
                       </button>
@@ -351,30 +353,30 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
 
       {activeTab === 'stats' && (
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Statistika</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Statistika</h2>
           {loading ? (
             <div className="text-center py-12">Yuklanmoqda...</div>
           ) : stats ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-900 font-semibold mb-2">Jami buyurtmalar</h3>
-                <p className="text-3xl font-bold text-gray-900">{stats.orders.total}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h3 className="text-gray-900 font-semibold mb-2 text-sm sm:text-base">Jami buyurtmalar</h3>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.orders.total}</p>
               </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-900 font-semibold mb-2">Kutayapti</h3>
-                <p className="text-3xl font-bold text-amber-600">{stats.orders.pending}</p>
+              <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h3 className="text-gray-900 font-semibold mb-2 text-sm sm:text-base">Kutayapti</h3>
+                <p className="text-2xl sm:text-3xl font-bold text-amber-600">{stats.orders.pending}</p>
               </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-900 font-semibold mb-2">Daromad</h3>
-                <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{stats.revenue.total.toLocaleString()} so'm</p>
+              <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h3 className="text-gray-900 font-semibold mb-2 text-sm sm:text-base">Daromad</h3>
+                <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{stats.revenue.total.toLocaleString()} so'm</p>
               </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-900 font-semibold mb-2">Mahsulotlar</h3>
-                <p className="text-3xl font-bold text-gray-900">{stats.products.total}</p>
+              <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h3 className="text-gray-900 font-semibold mb-2 text-sm sm:text-base">Mahsulotlar</h3>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.products.total}</p>
               </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-gray-900 font-semibold mb-2">Past qoldiq</h3>
-                <p className="text-3xl font-bold text-rose-600">{stats.products.lowStock}</p>
+              <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h3 className="text-gray-900 font-semibold mb-2 text-sm sm:text-base">Past qoldiq</h3>
+                <p className="text-2xl sm:text-3xl font-bold text-rose-600">{stats.products.lowStock}</p>
               </div>
             </div>
           ) : (
@@ -385,21 +387,21 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
 
       {activeTab === 'reports' && (
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Hisobot</h2>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <p className="text-gray-800 mb-6 font-medium">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Hisobot</h2>
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <p className="text-gray-800 mb-4 sm:mb-6 font-medium text-sm sm:text-base">
               Magazin statistikasini PDF formatida yuklab oling
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 onClick={() => downloadReport('week')}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all font-semibold text-sm sm:text-base"
               >
                 📊 Haftalik hisobot yuklab olish
               </button>
               <button
                 onClick={() => downloadReport('month')}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg hover:from-emerald-700 hover:to-teal-700 shadow-md hover:shadow-lg transition-all font-semibold"
+                className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg hover:from-emerald-700 hover:to-teal-700 shadow-md hover:shadow-lg transition-all font-semibold text-sm sm:text-base"
               >
                 📈 Oylik hisobot yuklab olish
               </button>
@@ -545,7 +547,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-sm font-medium mb-1 text-gray-900">Narxi *</label>
               <input
@@ -671,7 +673,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
             />
           </div>
           </div>
-          <div className="p-6 pt-4 border-t border-gray-200 flex gap-2 flex-shrink-0">
+          <div className="p-4 sm:p-6 pt-3 sm:pt-4 border-t border-gray-200 flex flex-col sm:flex-row gap-2 flex-shrink-0">
             <button
               type="button"
               onClick={onClose}
