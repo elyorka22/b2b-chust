@@ -19,7 +19,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const response = await fetch('/api/products');
       const data = await response.json();
@@ -29,9 +29,9 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const response = await fetch('/api/orders');
       const data = await response.json();
@@ -41,9 +41,9 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       setLoading(true);
       const data = await statsApi.get();
@@ -53,16 +53,16 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchSalesStats = async () => {
+  const fetchSalesStats = useCallback(async () => {
     try {
       const data = await statsApi.getSales();
       setSalesStats(data);
     } catch (error) {
       console.error('Statistikani yuklashda xatolik:', error);
     }
-  };
+  }, []);
 
   const fetchSubscription = useCallback(async () => {
     setLoading(true);
@@ -87,8 +87,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
     } else if (activeTab === 'subscription') {
       fetchSubscription();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, fetchSubscription]);
+  }, [activeTab, fetchProducts, fetchOrders, fetchStats, fetchSalesStats, fetchSubscription]);
 
   const handleDeleteProduct = async (id: string) => {
     if (!confirm('Mahsulotni o\'chirish?')) return;
