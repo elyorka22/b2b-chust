@@ -228,19 +228,6 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
               >
                 Hisobot
               </button>
-              <button
-                onClick={() => {
-                  setActiveTab('subscription');
-                  setIsMenuOpen(false);
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors font-semibold ${
-                  activeTab === 'subscription' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'text-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                Obuna
-              </button>
             </nav>
           </div>
         </>
