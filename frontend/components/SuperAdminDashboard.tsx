@@ -1365,19 +1365,6 @@ function UserForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () =
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900">Oylik obuna narxi (so'm) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.subscriptionPrice}
-                  onChange={(e) => setFormData({ ...formData, subscriptionPrice: e.target.value })}
-                  required={formData.role === 'magazin'}
-                  placeholder="Masalan: 110000 yoki 0 (bepul)"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
-                />
-                <p className="mt-1 text-xs text-gray-500">0 kiritsangiz, obuna bepul bo'ladi</p>
-              </div>
             </>
           )}
           <div className="flex gap-2">
