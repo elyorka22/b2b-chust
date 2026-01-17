@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Product, Order } from '@/lib/db';
 import { statsApi, subscriptionsApi } from '@/lib/api';
 
@@ -64,7 +64,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
     }
   };
 
-  const fetchSubscription = async () => {
+  const fetchSubscription = useCallback(async () => {
     setLoading(true);
     try {
       const data = await subscriptionsApi.getMy();
@@ -74,7 +74,7 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -87,7 +87,8 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
     } else if (activeTab === 'subscription') {
       fetchSubscription();
     }
-  }, [activeTab]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, fetchSubscription]);
 
   const handleDeleteProduct = async (id: string) => {
     if (!confirm('Mahsulotni o\'chirish?')) return;
