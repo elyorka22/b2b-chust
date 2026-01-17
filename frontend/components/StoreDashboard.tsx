@@ -69,6 +69,18 @@ export default function StoreDashboard({ storeName }: StoreDashboardProps) {
     }
   };
 
+  const fetchSubscription = async () => {
+    setLoading(true);
+    try {
+      const data = await subscriptionsApi.getMy();
+      setSubscription(data);
+    } catch (error) {
+      console.error('Obunani yuklashda xatolik:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const downloadReport = async (period: 'week' | 'month') => {
     try {
       const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
