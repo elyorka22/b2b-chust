@@ -323,6 +323,7 @@ export default function SuperAdminDashboard() {
           {showProductForm && (
             <ProductForm
               product={editingProduct}
+              users={users.filter(u => u.role === 'magazin')}
               onClose={() => {
                 setShowProductForm(false);
                 setEditingProduct(null);
@@ -855,7 +856,7 @@ export default function SuperAdminDashboard() {
   );
 }
 
-function ProductForm({ product, onClose, onSuccess }: { product: Product | null; onClose: () => void; onSuccess: () => void }) {
+function ProductForm({ product, users, onClose, onSuccess }: { product: Product | null; users: any[]; onClose: () => void; onSuccess: () => void }) {
   const [formData, setFormData] = useState({
     name: product?.name || '',
     description: product?.description || '',
@@ -864,6 +865,7 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
     stock: product?.stock ?? '',
     image: product?.image || '',
     category: product?.category || '',
+    storeId: product?.storeId || '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageMode, setImageMode] = useState<'url' | 'file'>('url');
@@ -931,12 +933,21 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
         }
       }
 
+      // Валидация storeId для super-admin
+      if (!formData.storeId) {
+        alert('Magazin tanlash majburiy!');
+        setIsSubmitting(false);
+        setUploadingImage(false);
+        return;
+      }
+
       // Конвертируем пустые строки в 0 для отправки
       const submitData = { 
         ...formData, 
         image: imageUrl,
         price: formData.price === '' ? 0 : (typeof formData.price === 'number' ? formData.price : parseFloat(formData.price) || 0),
         stock: formData.stock === '' ? 0 : (typeof formData.stock === 'number' ? formData.stock : parseInt(formData.stock) || 0),
+        storeId: formData.storeId,
       };
       console.log('Данные для отправки:', { ...submitData, image: imageUrl, hasImage: !!imageUrl });
       
@@ -969,6 +980,22 @@ function ProductForm({ product, onClose, onSuccess }: { product: Product | null;
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <div className="p-6 pt-4 overflow-y-auto flex-1 space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-900">Magazin *</label>
+            <select
+              value={formData.storeId}
+              onChange={(e) => setFormData({ ...formData, storeId: e.target.value })}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
+            >
+              <option value="">Magazin tanlang</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.storeName || user.username}
+                </option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-900">Nomi *</label>
             <input

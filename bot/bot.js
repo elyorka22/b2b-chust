@@ -386,10 +386,11 @@ bot.on('message', async (msg) => {
   }
 });
 
-// Обработка callback_query (нажатия на inline кнопки) - только для Web App кнопки
+// Обработка callback_query (нажатия на inline кнопки)
 bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const data = query.data;
+  const messageId = query.message.message_id;
 
   // Обновляем активность пользователя
   await updateUserActivity(
@@ -399,11 +400,74 @@ bot.on('callback_query', async (query) => {
     query.from.username
   );
 
-  // Обрабатываем только callback для Web App (если будут добавлены другие inline кнопки)
   try {
+    // Обработка кнопки "Принят" для товара в заказе
+    if (data && data.startsWith('accept_item:')) {
+      const parts = data.split(':');
+      if (parts.length === 4) {
+        const [, orderId, productId, storeId] = parts;
+        
+        console.log(`[BOT] Обработка принятия товара: orderId=${orderId}, productId=${productId}, storeId=${storeId}`);
+        
+        // Вызываем API для обновления статуса товара
+        try {
+          const response = await axios.post(`${BACKEND_URL}/api/orders/${orderId}/accept-item`, {
+            productId,
+            storeId
+          }, {
+            headers: {
+              'Authorization': `Bearer ${process.env.ADMIN_TOKEN || ''}` // Если нужна авторизация
+            }
+          });
+
+          if (response.data.success) {
+            bot.answerCallbackQuery(query.id, { text: '✅ Mahsulot qabul qilindi!', show_alert: false });
+            
+            // Обновляем сообщение
+            const updatedMessage = query.message.text.replace(
+              /⏳ (\d+\. .+? -)/g,
+              (match, item) => {
+                if (item.includes(response.data.productName)) {
+                  return `✅ ${item}`;
+                }
+                return match;
+              }
+            );
+            
+            bot.editMessageText(updatedMessage, {
+              chat_id: chatId,
+              message_id: messageId,
+              reply_markup: query.message.reply_markup
+            });
+
+            // Отправляем уведомление клиенту, если указан chat_id
+            if (response.data.customerNotification) {
+              console.log(`[BOT] Отправка уведомления клиенту: ${response.data.customerNotification.chatId}`);
+              bot.sendMessage(
+                response.data.customerNotification.chatId,
+                response.data.customerNotification.message
+              );
+            }
+          } else {
+            bot.answerCallbackQuery(query.id, { text: '❌ Xatolik yuz berdi', show_alert: true });
+          }
+        } catch (error) {
+          console.error('[BOT] Ошибка при принятии товара:', error.message);
+          bot.answerCallbackQuery(query.id, { text: '❌ Xatolik yuz berdi', show_alert: true });
+        }
+        return;
+      }
+    }
+
+    // Обрабатываем другие callback
     bot.answerCallbackQuery(query.id);
   } catch (error) {
     console.error('[BOT] Ошибка обработки callback_query:', error);
+    try {
+      bot.answerCallbackQuery(query.id, { text: 'Xatolik yuz berdi', show_alert: false });
+    } catch (e) {
+      // Игнорируем ошибку, если query уже обработан
+    }
   }
 });
 

@@ -241,34 +241,73 @@ export async function sendOrderNotification(order, supabaseAdmin) {
       console.log(`[NOTIFICATION] Продавец: ${user.username} (${user.store_name}), chat_id: ${user.telegram_chat_id}`);
     });
 
-    // Формируем сообщение о заказе
-    const orderItems = order.items.map((item, idx) => 
-      `${idx + 1}. ${item.product_name} - ${item.quantity} ${item.unit || 'dona'} × ${item.price.toLocaleString()} so'm`
-    ).join('\n');
-
-    const message = `🆕 Yangi buyurtma!\n\n` +
-      `📦 Buyurtma #${order.id.slice(0, 8)}\n` +
-      `📞 Telefon: ${order.phone}\n` +
-      `📍 Manzil: ${order.address}\n\n` +
-      `🛍️ Mahsulotlar:\n${orderItems}\n\n` +
-      `💰 Jami: ${order.total.toLocaleString()} so'm\n` +
-      `📅 Vaqt: ${new Date(order.created_at).toLocaleString('uz-UZ')}\n\n` +
-      `Holatni o'zgartirish uchun admin panelga kiring 👇`;
-
-    // Отправляем уведомление каждому продавцу
+    // Отправляем уведомление каждому продавцу с его товарами
     const results = await Promise.allSettled(
-      users.map(user => 
-        sendMessage(user.telegram_chat_id, message, {
-          reply_markup: {
-            inline_keyboard: [[
-              {
-                text: '📊 Admin panel',
-                url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin`
-              }
-            ]]
+      users.map(async user => {
+        // Фильтруем товары этого магазина
+        const storeItems = order.items.filter(item => {
+          const itemStoreId = item.store_id || (item.product_id ? null : null);
+          // Если store_id нет в item, получаем из product_id
+          if (!itemStoreId && item.product_id) {
+            // Найдем товар в базе (уже должны были получить store_id выше)
+            return false; // Временно, нужно проверить
           }
-        })
-      )
+          return itemStoreId === user.id;
+        });
+
+        // Если у магазина нет товаров в заказе, пропускаем
+        if (storeItems.length === 0) {
+          return { status: 'skipped' };
+        }
+
+        // Добавляем store_id к товарам, если его нет
+        storeItems.forEach(item => {
+          if (!item.store_id && !item.storeId) {
+            item.store_id = user.id;
+          }
+          // Инициализируем статусы товаров, если их нет
+          if (!item.item_status) {
+            item.item_status = 'pending';
+          }
+        });
+
+        // Формируем сообщение о заказе с товарами магазина
+        const orderItems = storeItems.map((item, idx) => {
+          const status = item.item_status === 'accepted' ? '✅' : '⏳';
+          return `${status} ${idx + 1}. ${item.product_name} - ${item.quantity} ${item.unit || 'dona'} × ${item.price.toLocaleString()} so'm`;
+        }).join('\n');
+
+        const storeTotal = storeItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+
+        const message = `🆕 Yangi buyurtma!\n\n` +
+          `📦 Buyurtma #${order.id.slice(0, 8)}\n` +
+          `📞 Telefon: ${order.phone}\n` +
+          `📍 Manzil: ${order.address}\n\n` +
+          `🛍️ Sizning mahsulotlaringiz:\n${orderItems}\n\n` +
+          `💰 Jami: ${storeTotal.toLocaleString()} so'm\n` +
+          `📅 Vaqt: ${new Date(order.created_at).toLocaleString('uz-UZ')}\n\n` +
+          `Mahsulotlarni qabul qilish uchun quyidagi tugmani bosing 👇`;
+
+        // Создаем кнопки для каждого товара магазина
+        const buttons = storeItems
+          .filter(item => item.item_status !== 'accepted')
+          .map(item => [{
+            text: `✅ Qabul qilish: ${item.product_name}`,
+            callback_data: `accept_item:${order.id}:${item.product_id}:${user.id}`
+          }]);
+
+        // Добавляем кнопку админ-панели
+        buttons.push([{
+          text: '📊 Admin panel',
+          url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin`
+        }]);
+
+        return sendMessage(user.telegram_chat_id, message, {
+          reply_markup: {
+            inline_keyboard: buttons
+          }
+        });
+      })
     );
 
     const successCount = results.filter(r => r.status === 'fulfilled').length;

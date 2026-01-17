@@ -389,6 +389,110 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+app.post('/api/orders/:id/accept-item', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+
+    const { id } = req.params;
+    const { productId, storeId } = req.body;
+
+    if (!productId || !storeId) {
+      return res.status(400).json({ error: 'Missing productId or storeId' });
+    }
+
+    console.log(`[ACCEPT ITEM] Заказ ${id}, товар ${productId}, магазин ${storeId}`);
+
+    // Получаем заказ
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from('b2b_orders')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (orderError || !order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Обновляем статус товара в заказе
+    const items = order.items || [];
+    let productName = '';
+    let updated = false;
+
+    const updatedItems = items.map(item => {
+      const itemProductId = item.product_id || item.productId;
+      const itemStoreId = item.store_id || item.storeId;
+      
+      if (itemProductId === productId && itemStoreId === storeId) {
+        if (item.item_status !== 'accepted') {
+          productName = item.product_name || item.productName;
+          updated = true;
+          return { ...item, item_status: 'accepted' };
+        }
+      }
+      return item;
+    });
+
+    if (!updated) {
+      return res.status(400).json({ error: 'Item already accepted or not found' });
+    }
+
+    // Сохраняем обновленный заказ
+    const { error: updateError } = await supabaseAdmin
+      .from('b2b_orders')
+      .update({ items: updatedItems })
+      .eq('id', id);
+
+    if (updateError) {
+      console.error('[ACCEPT ITEM] Ошибка обновления заказа:', updateError);
+      throw updateError;
+    }
+
+    console.log(`[ACCEPT ITEM] Товар ${productName} принят магазином ${storeId}`);
+
+    // Формируем уведомление для клиента
+    let customerNotification = null;
+    if (order.telegram_chat_id) {
+      // Получаем все товары заказа и группируем по статусу
+      const pendingItems = updatedItems.filter(item => !item.item_status || item.item_status === 'pending');
+      const acceptedItems = updatedItems.filter(item => item.item_status === 'accepted');
+
+      const pendingList = pendingItems.length > 0 
+        ? `⏳ Obraбатывается:\n${pendingItems.map((item, idx) => 
+            `${idx + 1}. ${item.product_name || item.productName} - ${item.quantity} ${item.unit || 'dona'}`
+          ).join('\n')}\n\n`
+        : '';
+
+      const acceptedList = acceptedItems.length > 0
+        ? `✅ Началась сборка:\n${acceptedItems.map((item, idx) => 
+            `${idx + 1}. ${item.product_name || item.productName} - ${item.quantity} ${item.unit || 'dona'}`
+          ).join('\n')}\n\n`
+        : '';
+
+      const message = `📦 Buyurtma holati yangilandi!\n\n` +
+        `📦 Buyurtma #${order.id.slice(0, 8)}\n\n` +
+        pendingList +
+        acceptedList +
+        `💰 Jami: ${order.total.toLocaleString()} so'm`;
+
+      customerNotification = {
+        chatId: order.telegram_chat_id,
+        message
+      };
+    }
+
+    res.json({
+      success: true,
+      productName,
+      customerNotification
+    });
+  } catch (error) {
+    console.error('[ACCEPT ITEM] Ошибка:', error);
+    res.status(500).json({ error: error.message || 'Internal server error' });
+  }
+});
+
 app.patch('/api/orders/:id', requireAuth, async (req, res) => {
   try {
     if (!supabaseAdmin) {
