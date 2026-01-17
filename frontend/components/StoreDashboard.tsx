@@ -10,7 +10,7 @@ interface StoreDashboardProps {
 }
 
 export default function StoreDashboard({ storeName }: StoreDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'stats' | 'reports'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'stats' | 'reports' | 'subscription'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<any>(null);
